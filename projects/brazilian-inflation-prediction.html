@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Brazilian Inflation Prediction — Daros Nakai</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:         #0a0a0f;
+  --bg2:        #10101a;
+  --bg3:        #16162a;
+  --border:     rgba(255,255,255,0.07);
+  --border-hi:  rgba(255,255,255,0.15);
+  --text:       #e8e8f0;
+  --text-dim:   #888899;
+  --text-faint: #44445a;
+  --a1: #5cf0b0;
+  --a2: #ff6b6b;
+  --a3: #6eb5ff;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --radius: 12px;
+  --tr: 0.22s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(10,10,15,0.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav__logo{font-family:var(--mono);font-size:13px;color:var(--a1);letter-spacing:.08em;text-decoration:none;}
+.nav__logo span{color:var(--text-dim);}
+.nav__right{display:flex;align-items:center;gap:20px;}
+.nav__back{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color var(--tr);}
+.nav__back:hover{color:var(--a1);}
+.nav__breadcrumb{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.04em;}
+.nav__breadcrumb .sep{margin:0 8px;}
+.nav__breadcrumb .cur{color:var(--text-dim);}
+.lang-toggle{display:flex;border:1px solid var(--border-hi);border-radius:6px;overflow:hidden;}
+.lang-btn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:5px 11px;border:none;background:transparent;color:var(--text-faint);cursor:pointer;transition:all var(--tr);}
+.lang-btn.active{background:var(--a1);color:#000;font-weight:500;}
+.lang-btn:not(.active):hover{color:var(--text);background:var(--border);}
+
+/* ── PAGE ── */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:104px 48px 120px;}
+
+/* ── SECTION DIVIDER ── */
+.section-divider{display:flex;align-items:center;gap:14px;margin-bottom:24px;margin-top:48px;}
+.section-divider__title{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap;}
+.section-divider__line{flex:1;height:1px;background:var(--border);}
+
+/* ── HEADER ── */
+.header{margin-bottom:48px;}
+.header__meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.header__meta-left{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;}
+.header__meta-right{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.06em;}
+.header__eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--a1);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.header__eyebrow::before{content:'';display:inline-block;width:28px;height:1px;background:var(--a1);}
+.header__title{font-size:clamp(30px,4.5vw,54px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin-bottom:18px;background:linear-gradient(135deg,#ffffff 0%,var(--a1) 60%,var(--a3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header__abstract{font-family:var(--mono);font-size:14px;color:var(--text-dim);line-height:1.75;max-width:680px;}
+
+/* ── OVERVIEW CARD (motivation / approach) ── */
+.overview-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:32px;}
+.overview-card__header{padding:16px 22px;border-bottom:1px solid var(--border);}
+.overview-card__title{font-size:15px;font-weight:700;letter-spacing:-.01em;}
+.overview-card__body{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:32px;}
+.overview-block-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--a1);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.overview-text{font-family:var(--mono);font-size:15px;color:var(--text-dim);line-height:1.75;}
+.overview-text p{margin-bottom:12px;}
+.overview-text p:last-child{margin-bottom:0;}
+
+/* ── RESULTS BOXES ── */
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;}
+.results-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color var(--tr),box-shadow var(--tr),transform var(--tr);}
+.results-box:hover{border-color:var(--border-hi);transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.35);}
+.results-box__header{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.results-box__icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.results-box__icon--green{background:color-mix(in srgb,var(--a1) 15%,transparent);}
+.results-box__icon--amber{background:color-mix(in srgb,#ffb347 15%,transparent);}
+.results-box__title{font-size:14px;font-weight:700;letter-spacing:-.01em;}
+.results-box__body{padding:20px 22px;}
+.results-list{list-style:none;display:flex;flex-direction:column;gap:12px;}
+.results-list li{font-family:var(--mono);font-size:14px;color:var(--text-dim);line-height:1.65;display:block;padding-left:18px;position:relative;}
+.results-list li::before{content:'→';color:var(--a1);position:absolute;left:0;top:0;}
+.results-list--amber li::before{color:#ffb347;}
+.results-list li strong{color:var(--text);font-weight:500;}
+
+/* ── HEADLINE METRIC CARDS ── */
+.headline-cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;}
+.hcard{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:28px 28px 24px;
+  position:relative;overflow:hidden;
+  transition:border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease;
+  cursor:default;
+}
+.hcard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--hcard-accent,var(--a1));
+  opacity:0.6;transition:opacity 0.25s ease;
+}
+.hcard:hover{
+  border-color:var(--hcard-accent,var(--a1));
+  background:color-mix(in srgb,var(--hcard-accent,var(--a1)) 4%,var(--bg2));
+  transform:translateY(-4px);
+  box-shadow:0 16px 40px rgba(0,0,0,0.4), 0 0 0 1px color-mix(in srgb,var(--hcard-accent,var(--a1)) 25%,transparent);
+}
+.hcard:hover::before{opacity:1;}
+.hcard__label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;}
+.hcard__name{font-size:18px;font-weight:800;letter-spacing:-.01em;color:var(--text);margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+.hcard__dot{width:10px;height:10px;border-radius:50%;background:var(--hcard-accent,var(--a1));flex-shrink:0;}
+.hcard__metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border-top:1px solid var(--border);}
+.hcard__metric{padding:14px 0 0;text-align:center;}
+.hcard__metric:not(:last-child){border-right:1px solid var(--border);}
+.hcard__metric-val{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--text);letter-spacing:-.02em;line-height:1;}
+.hcard__metric-key{font-family:var(--mono);font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-faint);margin-top:5px;}
+
+/* ── CONTROLS ── */
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px;}
+.controls__label{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap;}
+.pill-group{display:flex;flex-wrap:wrap;gap:7px;}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 12px;border-radius:99px;border:1px solid var(--border-hi);background:transparent;color:var(--text-dim);cursor:pointer;transition:all var(--tr);white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--pill-color,#aaa);flex-shrink:0;}
+.pill.active{border-color:var(--pill-color,#aaa);color:var(--text);background:color-mix(in srgb,var(--pill-color,#aaa) 12%,transparent);}
+.range-wrap{display:flex;align-items:center;gap:10px;flex:1;min-width:180px;}
+.range-label{font-family:var(--mono);font-size:10px;color:var(--a1);white-space:nowrap;min-width:36px;}
+input[type=range]{flex:1;-webkit-appearance:none;height:2px;background:var(--border-hi);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--a1);cursor:pointer;box-shadow:0 0 6px var(--a1);}
+
+/* ── CHART ── */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:32px;transition:border-color var(--tr);}
+.chart-card:hover{border-color:var(--border-hi);}
+.chart-card__header{padding:18px 22px 14px;border-bottom:1px solid var(--border);}
+.chart-card__title{font-size:15px;font-weight:700;letter-spacing:-.01em;}
+.chart-card__sub{font-family:var(--mono);font-size:10px;color:var(--text-faint);margin-top:3px;letter-spacing:.04em;}
+.chart-loading{height:420px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:var(--text-faint);font-family:var(--mono);font-size:12px;}
+.spinner{width:24px;height:24px;border:2px solid var(--border-hi);border-top-color:var(--a1);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.chart-error{height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-family:var(--mono);font-size:12px;color:var(--a2);text-align:center;padding:20px;}
+.chart-error code{font-size:10px;color:var(--text-faint);background:var(--bg3);padding:6px 12px;border-radius:6px;display:block;}
+
+/* ── METRICS TABLE ── */
+.metrics-table-wrap{margin-top:8px;}
+.metrics-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;}
+.metrics-table th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border-hi);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-faint);font-weight:400;}
+.metrics-table th:not(:first-child){text-align:right;}
+.metrics-table td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text-dim);}
+.metrics-table td:not(:first-child){text-align:right;}
+.metrics-table tr:hover td{background:var(--bg3);}
+.td-name{display:flex;align-items:center;gap:8px;color:var(--text);}
+.td-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.td-best{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--a1);background:color-mix(in srgb,var(--a1) 12%,transparent);border:1px solid color-mix(in srgb,var(--a1) 30%,transparent);padding:1px 6px;border-radius:99px;margin-left:6px;}
+.row-focus td{background:color-mix(in srgb,var(--a2) 4%,transparent);}
+.row-focus .td-name{color:var(--a2);}
+
+/* ── TECH CARD ── */
+.tech-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:32px;}
+.tech-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 22px;background:transparent;border:none;cursor:pointer;font-family:var(--sans);font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em;border-bottom:1px solid var(--border);transition:background var(--tr);}
+.tech-toggle:hover{background:var(--bg3);}
+.tech-toggle-icon{font-family:var(--mono);font-size:18px;color:var(--a1);transition:transform .2s;}
+.tech-toggle.open .tech-toggle-icon{transform:rotate(45deg);}
+.tech-body{display:none;padding:28px;grid-template-columns:1fr 1fr;gap:32px;}
+.tech-body.open{display:grid;}
+.tech-block-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--a1);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.tech-list{list-style:none;display:flex;flex-direction:column;gap:11px;}
+.tech-list li{font-family:var(--mono);font-size:15px;color:var(--text-dim);line-height:1.6;display:flex;gap:10px;}
+.tech-list li::before{content:'→';color:var(--a1);flex-shrink:0;}
+
+/* ── LIMITATIONS LIST — fixed-width label column ── */
+.results-list--lim li{
+  display:grid;
+  grid-template-columns:130px 1fr;
+  gap:12px;
+  align-items:start;
+  padding-left:18px;
+  position:relative;
+}
+.lim-label{
+  font-family:var(--mono);font-size:14px;
+  color:#ffb347;font-weight:500;
+  line-height:1.5;
+}
+.lim-desc{
+  font-family:var(--mono);font-size:14px;
+  color:var(--text-dim);line-height:1.65;
+}
+
+/* ── OTHER MODELS NOTE ── */
+.other-models-note{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:32px;display:flex;gap:14px;align-items:flex-start;}
+.other-models-note__icon{font-family:var(--mono);font-size:11px;color:var(--text-faint);flex-shrink:0;padding-top:2px;}
+.other-models-note__text{font-family:var(--mono);font-size:15px;color:var(--text-faint);line-height:1.7;}
+.other-models-note__text strong{color:var(--text-dim);font-weight:500;}
+
+@media(max-width:768px){
+  nav{padding:0 20px;}.nav__breadcrumb{display:none;}
+  .page{padding:84px 20px 80px;}
+  .overview-card__body,.tech-body.open,.results-grid,.headline-cards{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav__logo">DN<span> / portfolio</span></a>
+  <div class="nav__right">
+    <span class="nav__breadcrumb">
+      <a href="../index.html" style="color:var(--text-faint);text-decoration:none;font-family:var(--mono);font-size:11px;" data-i18n="nav_home">Home</a>
+      <span class="sep">/</span>
+      <span class="cur" data-i18n="nav_current">Brazilian Inflation Prediction</span>
+    </span>
+    <a href="../index.html#projects" class="nav__back" data-i18n="nav_back">← Projects</a>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
+      <button class="lang-btn"        onclick="setLang('pt',this)">PT</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header__meta">
+      <span class="header__meta-left" data-i18n="header_meta_left">Quantitative Research · Machine Learning</span>
+      <span class="header__meta-right" id="generated-date">BCB · IBGE · SGS API</span>
+    </div>
+    <div class="header__eyebrow" data-i18n="header_eyebrow">Inflation Forecasting</div>
+    <h1 class="header__title" data-i18n="header_title">Brazilian Inflation<br>Forecast Models</h1>
+    <p class="header__abstract" data-i18n="header_abstract">Can a systematic, data-driven model outperform the Central Bank's forecast on Brazilian inflation? This project builds and evaluates four regularised machine learning models trained on over 100 macroeconomic indicators — benchmarking their accuracy against the <strong>Focus Report</strong>, the official market consensus compiled by the Central Bank of Brazil.</p>
+  </header>
+
+  <!-- ══ 1. RESULTS ══════════════════════════════════════════ -->
+  <div class="section-divider">
+    <span class="section-divider__title" data-i18n="div_results">Results</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="results-grid">
+
+    <div class="results-box">
+      <div class="results-box__header">
+        <div class="results-box__icon results-box__icon--green">📈</div>
+        <span class="results-box__title" data-i18n="results_main_title">Main Results</span>
+      </div>
+      <div class="results-box__body">
+        <ul class="results-list">
+          <li data-i18n="res_r1"><strong>Best models outperformed the market benchmark for Inflation</strong>, with higher prediction power (R²) and less error (MAE).</li>
+          <li data-i18n="res_r2"><strong>Models showed their greatest edge during inflationary shocks</strong>, capturing regime shifts faster than analysts' expectations.</li>
+          <li data-i18n="res_r3"><strong>Different weights proved critical for variable selection</strong>, with exchange rates, monetary dynamics, and lagged inflation components consistently driving forecasts.</li>
+          <li data-i18n="res_r4"><strong>Linear models outperformed non-linear alternatives</strong> (LSTM, Random Forest) for inflation prediction — consistent with the econometrics literature.</li>
+        </ul>
+
+      </div>
+    </div>
+
+    <div class="results-box">
+      <div class="results-box__header">
+        <div class="results-box__icon results-box__icon--amber">⚠️</div>
+        <span class="results-box__title" data-i18n="results_lim_title">Limitations &amp; How They Were Addressed</span>
+      </div>
+      <div class="results-box__body">
+        <ul class="results-list results-list--amber results-list--lim">
+          <li>
+            <span class="lim-label" data-i18n="lim_l1">Look-ahead &amp; forward-looking bias</span>
+            <span class="lim-desc" data-i18n="lim_d1">A strict walk-forward backtest was implemented: models are retrained at every step using only past data, and feature transformations are selected using only the first training window.</span>
+          </li>
+          <li>
+            <span class="lim-label" data-i18n="lim_l3">Dealing with Heterogeneity &amp; Data Transformations</span>
+            <span class="lim-desc" data-i18n="lim_d3">The 100+ raw series span different scales and frequencies. A per-feature transformation search normalised signal quality, and StandardScaler was applied within each rolling window.</span>
+          </li>
+          <li>
+            <span class="lim-label" data-i18n="lim_l2">Publication lags</span>
+            <span class="lim-desc" data-i18n="lim_d2">Demographic series (IBGE) are released with a delay of 1–2 months after the reference period. Each variable was assigned a structured lag to reflect its real-world availability.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ 2. PLOTTING PREDICTIONS OVER TIME ══════════════════ -->
+  <div class="section-divider" style="margin-top:40px;">
+    <span class="section-divider__title" data-i18n="div_chart">Plotting Predictions Over Time</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <p style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);margin-bottom:20px;" data-i18n="chart_instruction">Select the model(s) you want to compare.</p>
+
+  <div class="controls">
+    <span class="controls__label" data-i18n="ctrl_models">Models</span>
+    <div class="pill-group" id="model-pills"></div>
+  </div>
+  <div class="controls" style="margin-bottom:20px;">
+    <span class="controls__label" data-i18n="ctrl_period">Period</span>
+    <div class="range-wrap">
+      <span class="range-label" id="range-start">2010</span>
+      <input type="range" id="range-slider" min="2005" max="2025" value="2010" step="1"/>
+      <span class="range-label" style="text-align:right;min-width:36px;" data-i18n="ctrl_now">now</span>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card__header">
+      <div class="chart-card__title" data-i18n="chart_title">CPI Monthly Forecast vs Actual</div>
+      <div class="chart-card__sub"   data-i18n="chart_sub">Month-on-month variation (%) · Walk-forward backtest</div>
+    </div>
+    <div id="chart-loading" class="chart-loading">
+      <div class="spinner"></div>
+      <span data-i18n="loading">Loading data…</span>
+    </div>
+    <div id="main-chart" style="display:none;height:420px;"></div>
+    <div id="chart-error" class="chart-error" style="display:none;">
+      <span data-i18n="err_msg">Could not load results data.</span>
+      <code id="error-msg"></code>
+    </div>
+  </div>
+
+  <!-- ══ 3. PROJECT OVERVIEW ════════════════════════════════ -->
+  <div class="section-divider" style="margin-top:40px;">
+    <span class="section-divider__title" data-i18n="div_overview">Project Overview</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <section class="overview-card">
+    <div class="overview-card__header">
+      <span class="overview-card__title" data-i18n="overview_title">Motivation &amp; Approach</span>
+    </div>
+    <div class="overview-card__body">
+      <div>
+        <div class="overview-block-title" data-i18n="overview_mot_title">Motivation</div>
+        <div class="overview-text">
+          <p data-i18n="overview_m1">Inflation forecasting is central to monetary policy, fixed income pricing, and macroeconomic research. In Brazil, the Boletim Focus — a weekly survey of professional economists compiled by the Central Bank — is the dominant benchmark for near-term CPI expectations.</p>
+          <p data-i18n="overview_m2">This project asks whether a systematic machine learning approach, trained on a broad set of leading macroeconomic indicators, can produce forecasts competitive with — or superior to — the professional consensus.</p>
+        </div>
+      </div>
+      <div>
+        <div class="overview-block-title" data-i18n="overview_app_title">Approach</div>
+        <div class="overview-text">
+          <p data-i18n="overview_a1">Four regularised linear models are trained on 100+ monthly series from the Central Bank of Brazil (BCB) and the Brazilian Institute of Geography and Statistics (IBGE) — covering inflation components, monetary aggregates, credit, fiscal balances, trade and activity indicators.</p>
+          <p data-i18n="overview_a2">Each model is evaluated using a strict walk-forward backtest: the model is trained only on data available at the time of the forecast, eliminating any look-ahead bias. Performance is measured by Mean Absolute Error (MAE) against the realised CPI print.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 4. TECHNICAL DETAILS ═══════════════════════════════ -->
+  <div class="section-divider" style="margin-top:40px;">
+    <span class="section-divider__title" data-i18n="div_technical">Technical Details</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <!-- Performance vs Benchmark: headline cards + table (inside Technical Details) -->
+  <div class="section-divider" style="margin-top:0; margin-bottom:20px;">
+    <span class="section-divider__title" style="color:var(--text-dim);" data-i18n="div_performance">Performance vs Benchmark</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="headline-cards" id="headline-cards">
+    <div class="hcard" style="--hcard-accent:var(--a3);">
+      <div class="hcard__label" data-i18n="hcard_loading_label">Loading…</div>
+      <div class="hcard__name"><span class="hcard__dot"></span>Adaptive Lasso</div>
+      <div class="hcard__metrics">
+        <div class="hcard__metric"><div class="hcard__metric-val" id="al-mae">—</div><div class="hcard__metric-key">MAE</div></div>
+        <div class="hcard__metric"><div class="hcard__metric-val" id="al-rmse">—</div><div class="hcard__metric-key">RMSE</div></div>
+        <div class="hcard__metric"><div class="hcard__metric-val" id="al-r2">—</div><div class="hcard__metric-key">R²</div></div>
+      </div>
+    </div>
+    <div class="hcard" style="--hcard-accent:var(--a2);">
+      <div class="hcard__label" data-i18n="hcard_loading_label">Loading…</div>
+      <div class="hcard__name"><span class="hcard__dot" style="background:var(--a2);"></span><span data-i18n="hcard_focus_name">Central Bank's Forecast (Market Consensus)</span></div>
+      <div class="hcard__metrics">
+        <div class="hcard__metric"><div class="hcard__metric-val" id="fc-mae">—</div><div class="hcard__metric-key">MAE</div></div>
+        <div class="hcard__metric"><div class="hcard__metric-val" id="fc-rmse">—</div><div class="hcard__metric-key">RMSE</div></div>
+        <div class="hcard__metric"><div class="hcard__metric-val" id="fc-r2">—</div><div class="hcard__metric-key">R²</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-table-wrap" style="margin-bottom:32px;">
+    <table class="metrics-table">
+      <thead>
+        <tr>
+          <th data-i18n="th_model">Model</th>
+          <th data-i18n="th_mae">MAE</th>
+          <th data-i18n="th_rmse">RMSE</th>
+          <th data-i18n="th_r2">R²</th>
+          <th data-i18n="th_obs">Obs.</th>
+        </tr>
+      </thead>
+      <tbody id="metrics-tbody">
+        <tr><td colspan="5" style="padding:20px;font-family:var(--mono);font-size:11px;color:var(--text-faint);text-align:center;" data-i18n="metrics_loading">Loading metrics…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Models & Methodology dropdown -->
+  <section class="tech-card">
+    <button class="tech-toggle" id="tech-toggle">
+      <span data-i18n="tech_title">Models &amp; Methodology</span>
+      <span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body" id="tech-body" style="display:none;">
+      <div>
+        <div class="tech-block-title" data-i18n="tech_models_title">Models Used</div>
+        <ul class="tech-list">
+          <li data-i18n="tech_m1">Lasso — L1 regularisation; α selected by grid-search on a rolling validation window</li>
+          <li data-i18n="tech_m2">Adaptive Lasso — ASGL library; penalty weights from OLS pilot, re-tuned every K windows</li>
+          <li data-i18n="tech_m3">Elastic Net — combined L1 + L2; l1_ratio and α jointly optimised via TimeSeriesSplit CV</li>
+          <li data-i18n="tech_m4">Adaptive Elastic Net — adaptive L1 weights; γ controls penalty aggressiveness</li>
+          <li data-i18n="tech_m5">Ensemble Mean / Median — simple average and median across all four models</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title" data-i18n="tech_method_title">Methodology</div>
+        <ul class="tech-list">
+          <li data-i18n="tech_me1">Walk-forward backtesting with rolling training windows of 36–90 months</li>
+          <li data-i18n="tech_me2">Feature set: 100+ BCB SGS series + IBGE SIDRA (PMC, PIMPF) — inflation, monetary, credit, fiscal, trade, activity</li>
+          <li data-i18n="tech_me3">Structured lags of 0–3 months per variable; IBGE series lagged 1–2 months for publication delay</li>
+          <li data-i18n="tech_me4">Best-correlation transformation per feature (diff, log, pct-change) selected on first training window only</li>
+          <li data-i18n="tech_me5">StandardScaler fitted inside each rolling window on training data only</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Other models note -->
+  <div class="other-models-note">
+    <span class="other-models-note__icon">📝</span>
+    <span class="other-models-note__text" data-i18n="other_models_note">
+      <strong>Other models tested:</strong> LSTM (Long Short-Term Memory), Ridge regression, CSR (Cross-Sectional Regression), and Random Forest were also evaluated during development. None produced results competitive with the regularised linear models presented here — likely due to the relatively short time series available, the high dimensionality of the feature space, and the structural instability of Brazilian macroeconomic data over the sample period. Their code remains available in the project notebooks.
+    </span>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ── CONFIG ────────────────────────────────────
+// Primary: raw GitHub (works on GitHub Pages, may be blocked locally)
+const DATA_URL = 'https://raw.githubusercontent.com/darosnakai/Brazilian-Inflation-Prediction/main/data/ipca_results.json';
+// Fallback: jsDelivr CDN (CORS-enabled, works everywhere including local)
+const DATA_URL_FALLBACK = 'https://cdn.jsdelivr.net/gh/darosnakai/Brazilian-Inflation-Prediction@main/data/ipca_results.json'; // CDN mirror, CORS-safe
+
+const COLORS = {
+  actual:'#e8e8f0', focus:'#ff6b6b',
+  lasso:'#6eb5ff', adaptive_lasso:'#c97bff',
+  elastic_net:'#ffb347', adaptive_elastic_net:'#f06fff',
+  average:'#5cf0b0', median:'#aaffee',
+};
+
+const MODEL_LABELS_EN = {
+  lasso:'Lasso', adaptive_lasso:'Adaptive Lasso',
+  elastic_net:'Elastic Net', adaptive_elastic_net:'Adaptive Elastic Net',
+  average:'Ensemble (Mean)', median:'Ensemble (Median)',
+};
+const MODEL_LABELS_PT = {
+  lasso:'Lasso', adaptive_lasso:'Lasso Adaptativo',
+  elastic_net:'Elastic Net', adaptive_elastic_net:'Elastic Net Adaptativo',
+  average:'Ensemble (Média)', median:'Ensemble (Mediana)',
+};
+
+// ── STATE ─────────────────────────────────────
+let rawData      = null;
+// Default active: only actual + adaptive_lasso (others off by default)
+let activeModels = new Set(['adaptive_lasso']);
+let startYear    = 2010;
+let currentLang  = 'en';
+
+// ── PLOTLY LAYOUT ─────────────────────────────
+const LAYOUT = {
+  paper_bgcolor:'transparent', plot_bgcolor:'transparent',
+  font:{ family:"'DM Mono',monospace", color:'#888899', size:11 },
+  xaxis:{ gridcolor:'rgba(255,255,255,0.04)', linecolor:'rgba(255,255,255,0.07)', tickcolor:'rgba(255,255,255,0.07)', color:'#888899', zeroline:false },
+  yaxis:{ gridcolor:'rgba(255,255,255,0.04)', linecolor:'rgba(255,255,255,0.07)', tickcolor:'rgba(255,255,255,0.07)', color:'#888899', zeroline:true, zerolinecolor:'rgba(255,255,255,0.08)', zerolinewidth:1, ticksuffix:'%' },
+  legend:{ bgcolor:'rgba(10,10,15,0.8)', bordercolor:'rgba(255,255,255,0.07)', borderwidth:1, font:{ size:11, color:'#e8e8f0', family:"'DM Mono',monospace" } },
+  margin:{ t:16, r:24, b:48, l:52 },
+  hovermode:'x unified',
+  hoverlabel:{ bgcolor:'#16162a', bordercolor:'rgba(255,255,255,0.15)', font:{ family:"'DM Mono',monospace", color:'#e8e8f0', size:12 } },
+};
+const CONFIG = {
+  responsive:true, displayModeBar:true,
+  modeBarButtonsToRemove:['select2d','lasso2d','autoScale2d'],
+  displaylogo:false,
+  toImageButtonOptions:{ format:'png', width:1400, height:520, filename:'ipca_forecast' },
+};
+
+// ── FETCH ─────────────────────────────────────
+async function loadData() {
+  // Try primary URL first, then fall back to jsDelivr CDN
+  const urls = [DATA_URL, DATA_URL_FALLBACK];
+  let lastErr = null;
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      rawData = await res.json();
+      if (rawData.generated_at)
+        document.getElementById('generated-date').textContent =
+          'Updated ' + rawData.generated_at.split(' ')[0] + ' · BCB · IBGE';
+      buildPills();
+      render();
+      fillHeadlineCards();
+      renderMetricsTable();
+      return; // success — stop
+    } catch(err) {
+      lastErr = err;
+      continue; // try next URL
+    }
+  }
+  // Both failed
+  document.getElementById('chart-loading').style.display = 'none';
+  document.getElementById('chart-error').style.display   = 'flex';
+  document.getElementById('error-msg').textContent = lastErr?.message || 'Failed to load data from GitHub.';
+}
+
+// ── PILLS (pre-select: actual + adaptive_lasso) ─
+function buildPills() {
+  const container = document.getElementById('model-pills');
+  container.innerHTML = '';
+  const labels = currentLang === 'pt' ? MODEL_LABELS_PT : MODEL_LABELS_EN;
+
+  // actual — always active by default
+  [['actual', currentLang==='pt'?'IPCA Realizado':'Actual CPI'],
+   ['focus',  'Focus (Média)']].forEach(([k, label]) => {
+    const btn = document.createElement('button');
+    const isActive = k === 'actual'; // focus off by default
+    btn.className = 'pill' + (isActive ? ' active' : '');
+    btn.dataset.key = k;
+    btn.style.setProperty('--pill-color', COLORS[k]);
+    btn.textContent = label;
+    btn.addEventListener('click', () => { btn.classList.toggle('active'); render(); });
+    container.appendChild(btn);
+  });
+
+  Object.keys(labels).forEach(k => {
+    const btn = document.createElement('button');
+    const isActive = activeModels.has(k);
+    btn.className = 'pill' + (isActive ? ' active' : '');
+    btn.dataset.key = k;
+    btn.style.setProperty('--pill-color', COLORS[k]||'#aaa');
+    btn.textContent = labels[k];
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('active');
+      activeModels.has(k) ? activeModels.delete(k) : activeModels.add(k);
+      render();
+    });
+    container.appendChild(btn);
+  });
+}
+
+// ── FILTER ────────────────────────────────────
+function byYear(records, year) {
+  return (records||[]).filter(r => +r.date.slice(0,4) >= year);
+}
+
+// ── RENDER CHART ──────────────────────────────
+function render() {
+  if (!rawData) return;
+  const td = rawData['ipca_total'];
+  if (!td) return;
+
+  const pills      = document.querySelectorAll('#model-pills .pill');
+  const showActual = [...pills].find(p=>p.dataset.key==='actual')?.classList.contains('active') ?? true;
+  const showFocus  = [...pills].find(p=>p.dataset.key==='focus')?.classList.contains('active')  ?? false;
+  const labels     = currentLang==='pt' ? MODEL_LABELS_PT : MODEL_LABELS_EN;
+  const traces     = [];
+
+  if (showActual && td.actual?.length) {
+    const d = byYear(td.actual, startYear);
+    traces.push({ x:d.map(r=>r.date), y:d.map(r=>r.value),
+      name: currentLang==='pt'?'IPCA Realizado':'Actual CPI',
+      type:'scatter', mode:'lines', line:{color:COLORS.actual,width:2.5},
+      hovertemplate:'%{y:.3f}%<extra>'+(currentLang==='pt'?'Realizado':'Actual CPI')+'</extra>' });
+  }
+  if (showFocus && td.focus?.length) {
+    const d = byYear(td.focus, startYear);
+    traces.push({ x:d.map(r=>r.date), y:d.map(r=>r.media), name:'Focus (Média)',
+      type:'scatter', mode:'lines', line:{color:COLORS.focus,width:1.8,dash:'dot'},
+      hovertemplate:'%{y:.3f}%<extra>Focus</extra>' });
+  }
+  if (td.models) {
+    Object.entries(td.models).forEach(([k, records]) => {
+      if (!activeModels.has(k) || !records?.length) return;
+      const d = byYear(records, startYear);
+      if (!d.length) return;
+      const isEns = k==='average'||k==='median';
+      traces.push({ x:d.map(r=>r.date), y:d.map(r=>r.y_pred),
+        name:labels[k]||k, type:'scatter', mode:'lines', opacity:0.85,
+        line:{color:COLORS[k]||'#aaa', width:isEns?2:1.5, dash:isEns?'dash':'solid'},
+        hovertemplate:'%{y:.3f}%<extra>'+(labels[k]||k)+'</extra>' });
+    });
+  }
+
+  document.getElementById('chart-loading').style.display = 'none';
+  document.getElementById('chart-error').style.display   = 'none';
+  const el = document.getElementById('main-chart');
+  el.style.display = 'block';
+  Plotly.react('main-chart', traces, LAYOUT, CONFIG);
+}
+
+// ── FOCUS METRICS HELPER ──────────────────────
+function computeFocusMetrics(focusData) {
+  if (!rawData?.ipca_total?.actual?.length || !focusData?.length) return null;
+  const actualMap = {};
+  rawData.ipca_total.actual.forEach(r => { actualMap[r.date]=r.value; });
+  const pairs = focusData.filter(r=>actualMap[r.date]!=null&&r.media!=null)
+                         .map(r=>({ p:r.media, t:actualMap[r.date] }));
+  if (!pairs.length) return null;
+  const n   = pairs.length;
+  const mae = pairs.reduce((s,p)=>s+Math.abs(p.p-p.t),0)/n;
+  const mse = pairs.reduce((s,p)=>s+(p.p-p.t)**2,0)/n;
+  const mu  = pairs.reduce((s,p)=>s+p.t,0)/n;
+  const sst = pairs.reduce((s,p)=>s+(p.t-mu)**2,0);
+  const ssr = pairs.reduce((s,p)=>s+(p.p-p.t)**2,0);
+  return { mae, rmse:Math.sqrt(mse), r2:1-ssr/sst, n_obs:n };
+}
+
+// ── HEADLINE CARDS ────────────────────────────
+function fillHeadlineCards() {
+  const td = rawData?.ipca_total;
+  if (!td) return;
+
+  const alMetrics = td.metrics?.['adaptive_lasso'];
+  const fcMetrics = computeFocusMetrics(td.focus||[]);
+  const lang = currentLang;
+
+  // Adaptive Lasso card
+  if (alMetrics) {
+    document.querySelector('.hcard:first-child .hcard__label').textContent =
+      lang==='pt' ? 'Melhor Modelo' : 'Best Model';
+    document.getElementById('al-mae').textContent  = alMetrics.mae.toFixed(4);
+    document.getElementById('al-rmse').textContent = alMetrics.rmse.toFixed(4);
+    document.getElementById('al-r2').textContent   = alMetrics.r2.toFixed(4);
+  }
+
+  // Focus card
+  if (fcMetrics) {
+    document.querySelector('.hcard:last-child .hcard__label').textContent =
+      lang==='pt' ? 'Benchmark de Mercado' : 'Market Benchmark';
+    document.getElementById('fc-mae').textContent  = fcMetrics.mae.toFixed(4);
+    document.getElementById('fc-rmse').textContent = fcMetrics.rmse.toFixed(4);
+    document.getElementById('fc-r2').textContent   = fcMetrics.r2.toFixed(4);
+  }
+}
+
+// ── METRICS TABLE (no vs-focus column) ────────
+function renderMetricsTable() {
+  const tbody  = document.getElementById('metrics-tbody');
+  tbody.innerHTML = '';
+  const td     = rawData?.ipca_total;
+  const metrics = td?.metrics || {};
+  const labels  = currentLang==='pt' ? MODEL_LABELS_PT : MODEL_LABELS_EN;
+  const focusMet = computeFocusMetrics(td?.focus||[]);
+
+  if (!Object.keys(metrics).length && !focusMet) return;
+
+  const bestKey = Object.entries(metrics).reduce((b,[k,m])=>m.mae<b[1]?[k,m.mae]:b,['',Infinity])[0];
+  const order   = ['lasso','adaptive_lasso','elastic_net','adaptive_elastic_net','average','median'];
+  const sorted  = order.filter(k=>metrics[k]).concat(Object.keys(metrics).filter(k=>!order.includes(k)));
+
+  // Focus row first
+  if (focusMet) {
+    const tr = document.createElement('tr');
+    tr.className = 'row-focus';
+    tr.innerHTML = `
+      <td><span class="td-name"><span class="td-dot" style="background:${COLORS.focus};"></span>Focus (${currentLang==='pt'?'Consenso':'Consensus'})</span></td>
+      <td>${focusMet.mae.toFixed(4)}</td>
+      <td>${focusMet.rmse.toFixed(4)}</td>
+      <td>${focusMet.r2.toFixed(4)}</td>
+      <td>${focusMet.n_obs}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  sorted.forEach(key => {
+    const m = metrics[key]; if (!m) return;
+    const isBest = key===bestKey;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="td-name">
+        <span class="td-dot" style="background:${COLORS[key]||'#aaa'};"></span>
+        ${labels[key]||key}
+        ${isBest?`<span class="td-best">${currentLang==='pt'?'MELHOR MAE':'BEST MAE'}</span>`:''}
+      </span></td>
+      <td>${m.mae.toFixed(4)}</td>
+      <td>${m.rmse.toFixed(4)}</td>
+      <td>${m.r2.toFixed(4)}</td>
+      <td>${m.n_obs}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── TECH TOGGLE ───────────────────────────────
+function toggleTech() {
+  const btn  = document.getElementById('tech-toggle');
+  const body = document.getElementById('tech-body');
+  const isOpen = btn.classList.contains('open');
+  if (isOpen) {
+    btn.classList.remove('open');
+    body.style.display = 'none';
+  } else {
+    btn.classList.add('open');
+    body.style.display = 'grid';
+    body.style.gridTemplateColumns = '1fr 1fr';
+    body.style.gap = '32px';
+    body.style.padding = '28px';
+  }
+}
+// Wire up dropdown via addEventListener (more reliable than inline onclick)
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtn = document.getElementById('tech-toggle');
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleTech);
+});
+
+// ── SLIDER ────────────────────────────────────
+document.getElementById('range-slider').addEventListener('input', function() {
+  startYear = +this.value;
+  document.getElementById('range-start').textContent = startYear;
+  render();
+});
+
+// ── i18n ──────────────────────────────────────
+const STRINGS = {
+  en:{
+    nav_home:'Home', nav_current:'Brazilian Inflation Prediction', nav_back:'← Projects',
+    header_meta_left:'Quantitative Research · Machine Learning',
+    header_eyebrow:'Inflation Forecasting',
+    header_title:'Brazilian Inflation<br>Forecast Models',
+    header_abstract:'Can a systematic, data-driven model outperform the Central Bank`s forecast on Brazilian inflation? This project builds and evaluates four regularised machine learning models trained on over 100 macroeconomic indicators — benchmarking their accuracy against the Focus Report, the official market consensus compiled by the Central Bank of Brazil.',
+    div_overview:'Project Overview', div_results:'Results',
+    div_performance:'Performance vs Benchmark', div_chart:'Plotting Predictions Over Time',
+    div_technical:'Technical Details',
+    overview_title:'Motivation &amp; Approach',
+    overview_mot_title:'Motivation',
+    overview_m1:'Inflation forecasting is central to monetary policy, fixed income pricing, and macroeconomic research. In Brazil, the Boletim Focus — a weekly survey of professional economists compiled by the Central Bank — is the dominant benchmark for near-term CPI expectations.',
+    overview_m2:'This project asks whether a systematic machine learning approach, trained on a broad set of leading macroeconomic indicators, can produce forecasts competitive with — or superior to — the professional consensus.',
+    overview_app_title:'Approach',
+    overview_a1:'Four regularised linear models are trained on 100+ monthly series from the Central Bank of Brazil (BCB) and the Brazilian Institute of Geography and Statistics (IBGE) — covering inflation components, monetary aggregates, credit, fiscal balances, trade and activity indicators.',
+    overview_a2:'Each model is evaluated using a strict walk-forward backtest: the model is trained only on data available at the time of the forecast, eliminating any look-ahead bias. Performance is measured by Mean Absolute Error (MAE) against the realised CPI print.',
+    results_main_title:'Main Results',
+    res_r1:'<strong>Best models outperformed the market benchmark for Inflation</strong>, with higher prediction power (R²) and less error (MAE).',
+    res_r2:'<strong>Models showed their greatest edge during inflationary shocks</strong>, capturing regime shifts faster than analysts` expectations.',
+    res_r3:'<strong>Different weights proved critical for variable selection</strong>, with exchange rates, monetary dynamics, and lagged inflation components consistently driving forecasts.',
+    res_r4:'<strong>Linear models outperformed non-linear alternatives</strong> (LSTM, Random Forest) for inflation prediction — consistent with the econometrics literature.',
+    future_steps_label:'Future Steps',
+    future_s1:'Incorporate news-sentiment analysis to improve detection of inflationary shocks before they appear in hard data',
+    future_s2:'Use market data (swap rates, commodity futures) to predict regime changes in the inflation process',
+    results_lim_title:'Limitations &amp; How They Were Addressed',
+    lim_l1:'Look-ahead &amp; forward-looking bias',
+    lim_d1:'A strict walk-forward backtest was implemented: models are retrained at every step using only past data, and feature transformations are selected using only the first training window.',
+    lim_l2:'Publication lags',
+    lim_d2:'Demographic series (IBGE) are released with a delay of 1–2 months after the reference period. Each variable was assigned a structured lag to reflect its real-world availability.',
+    lim_l3:'Dealing with Heterogeneity &amp; Data Transformations',
+    lim_d3:'The 100+ raw series span different scales and frequencies. A per-feature transformation search normalised signal quality, and StandardScaler was applied within each rolling window.',
+    hcard_loading_label:'Loading…',
+    hcard_focus_name:"Central Bank's Forecast (Market Consensus)",
+    th_model:'Model', th_mae:'MAE', th_rmse:'RMSE', th_r2:'R²', th_obs:'Obs.',
+    metrics_loading:'Loading metrics…',
+    chart_instruction:'Select the model(s) you want to compare.',
+    ctrl_models:'Models', ctrl_period:'Period', ctrl_now:'now',
+    chart_title:'CPI Monthly Forecast vs Actual',
+    chart_sub:'Month-on-month variation (%) · Walk-forward backtest',
+    loading:'Loading data…', err_msg:'Could not load results data.',
+    tech_title:'Models &amp; Methodology',
+    tech_models_title:'Models Used',
+    tech_m1:'Lasso — L1 regularisation; α selected by grid-search on a rolling validation window',
+    tech_m2:'Adaptive Lasso — ASGL library; penalty weights from OLS pilot, re-tuned every K windows',
+    tech_m3:'Elastic Net — combined L1 + L2; l1_ratio and α jointly optimised via TimeSeriesSplit CV',
+    tech_m4:'Adaptive Elastic Net — adaptive L1 weights; γ controls penalty aggressiveness',
+    tech_m5:'Ensemble Mean / Median — simple average and median across all four models',
+    tech_method_title:'Methodology',
+    tech_me1:'Walk-forward backtesting with rolling training windows of 36–90 months',
+    tech_me2:'Feature set: 100+ BCB SGS series + IBGE SIDRA (PMC, PIMPF) — inflation, monetary, credit, fiscal, trade, activity',
+    tech_me3:'Structured lags of 0–3 months per variable; IBGE series lagged 1–2 months for publication delay',
+    tech_me4:'Best-correlation transformation per feature (diff, log, pct-change) selected on first training window only',
+    tech_me5:'StandardScaler fitted inside each rolling window on training data only',
+    other_models_note:'<strong>Other models tested:</strong> LSTM (Long Short-Term Memory), Ridge regression, CSR (Cross-Sectional Regression), and Random Forest were also evaluated during development. None produced results competitive with the regularised linear models presented here — likely due to the relatively short time series available, the high dimensionality of the feature space, and the structural instability of Brazilian macroeconomic data over the sample period. Their code remains available in the project notebooks.',
+  },
+  pt:{
+    nav_home:'Início', nav_current:'Previsão de Inflação Brasileira', nav_back:'← Projetos',
+    header_meta_left:'Pesquisa Quantitativa · Machine Learning',
+    header_eyebrow:'Previsão de Inflação',
+    header_title:'Inflação Brasileira<br>Modelos de Previsão',
+    header_abstract:'Um modelo sistemático orientado a dados consegue superar os previsores profissionais na inflação brasileira? Este projeto constrói e avalia quatro modelos de machine learning regularizados, treinados em mais de 100 indicadores macroeconômicos — comparando sua precisão com o Boletim Focus, o consenso oficial de mercado compilado pelo Banco Central do Brasil.',
+    div_overview:'Visão Geral', div_results:'Resultados',
+    div_performance:'Desempenho vs Benchmark', div_chart:'Previsões ao Longo do Tempo',
+    div_technical:'Detalhes Técnicos',
+    overview_title:'Motivação &amp; Abordagem',
+    overview_mot_title:'Motivação',
+    overview_m1:'A previsão de inflação é central para a política monetária, a precificação de renda fixa e a pesquisa macroeconômica. No Brasil, o Boletim Focus — uma pesquisa semanal com economistas profissionais compilada pelo Banco Central — é o principal benchmark para as expectativas de curto prazo do IPCA.',
+    overview_m2:'Este projeto investiga se uma abordagem sistemática de machine learning, treinada em um amplo conjunto de indicadores macroeconômicos antecedentes, pode produzir previsões competitivas — ou superiores — ao consenso profissional.',
+    overview_app_title:'Abordagem',
+    overview_a1:'Quatro modelos lineares regularizados são treinados em mais de 100 séries mensais do BCB e do IBGE — cobrindo componentes de inflação, agregados monetários, crédito, balanços fiscais, comércio exterior e indicadores de atividade.',
+    overview_a2:'Cada modelo é avaliado por meio de um rigoroso backtest walk-forward: o modelo é treinado apenas com dados disponíveis no momento da previsão. O desempenho é medido pelo Erro Médio Absoluto (MAE) em relação ao IPCA realizado.',
+    results_main_title:'Principais Resultados',
+    res_r1:'<strong>Os melhores modelos superaram o benchmark de mercado para inflação</strong>, com maior poder preditivo (R²) e menor erro (MAE).',
+    res_r2:'<strong>Os modelos mostraram maior vantagem durante choques inflacionários</strong> — como a alta de commodities pós-COVID e os picos de preços de energia e alimentos em 2022 — quando o conjunto amplo de indicadores capturou mudanças de regime mais rapidamente do que as expectativas da pesquisa conseguiram se ajustar.',
+    res_r3:'<strong>Diferentes pesos foram essenciais para a seleção de variáveis</strong>, com dinâmica cambial, agregados monetários e componentes defasados de inflação conduzindo consistentemente as previsões.',
+    res_r4:'<strong>Modelos lineares superaram alternativas não-lineares</strong> (LSTM, Random Forest) na previsão de inflação — consistente com a literatura econométrica.',
+    future_steps_label:'Próximos Passos',
+    future_s1:'Incorporar análise de sentimento de notícias para melhorar a detecção de choques inflacionários antes que apareçam nos dados duros',
+    future_s2:'Usar dados de mercado (taxas de swap, futuros de commodities) para prever mudanças de regime no processo inflacionário',
+    results_lim_title:'Limitações &amp; Como Foram Tratadas',
+    lim_l1:'Viés de look-ahead e forward-looking',
+    lim_d1:'Um rigoroso backtest walk-forward foi implementado: os modelos são retreinados a cada etapa apenas com dados do passado, e as transformações de features são selecionadas somente na primeira janela de treino.',
+    lim_l2:'Defasagens de publicação',
+    lim_d2:'As séries do IBGE (PMC, PIMPF) são divulgadas com atraso de 1 a 2 meses. Cada variável recebeu uma defasagem estruturada para refletir sua disponibilidade real no momento da previsão.',
+    lim_l3:'Heterogeneidade &amp; Transformações de Dados',
+    lim_d3:'As 100+ séries brutas têm escalas, frequências e propriedades distribucionais distintas. Uma busca de transformação por feature normalizou a qualidade dos sinais, e o StandardScaler foi aplicado dentro de cada janela rolling.',
+    hcard_loading_label:'Carregando…',
+    hcard_focus_name:'Focus (Consenso de Mercado)',
+    th_model:'Modelo', th_mae:'MAE', th_rmse:'RMSE', th_r2:'R²', th_obs:'Obs.',
+    metrics_loading:'Carregando métricas…',
+    chart_instruction:'Selecione o(s) modelo(s) que deseja comparar.',
+    ctrl_models:'Modelos', ctrl_period:'Período', ctrl_now:'hoje',
+    chart_title:'Previsão do IPCA Mensal vs Realizado',
+    chart_sub:'Variação mensal (%) · Backtest walk-forward',
+    loading:'Carregando dados…', err_msg:'Não foi possível carregar os dados.',
+    tech_title:'Modelos &amp; Metodologia',
+    tech_models_title:'Modelos Utilizados',
+    tech_m1:'Lasso — regularização L1; α selecionado por grid-search em janela de validação rolling',
+    tech_m2:'Lasso Adaptativo — biblioteca ASGL; pesos derivados de MQO piloto, re-ajustados a cada K janelas',
+    tech_m3:'Elastic Net — penalidade L1 + L2; l1_ratio e α otimizados via TimeSeriesSplit CV',
+    tech_m4:'Elastic Net Adaptativo — pesos L1 adaptativos; γ controla a agressividade da penalidade',
+    tech_m5:'Ensemble Média / Mediana — média simples e mediana de todos os quatro modelos',
+    tech_method_title:'Metodologia',
+    tech_me1:'Backtest walk-forward com janelas de treino rolling de 36 a 90 meses',
+    tech_me2:'Features: 100+ séries do SGS-BCB + SIDRA-IBGE (PMC, PIMPF) — inflação, monetário, crédito, fiscal, comércio, atividade',
+    tech_me3:'Defasagens estruturadas de 0 a 3 meses por variável; séries do IBGE defasadas 1–2 meses',
+    tech_me4:'Melhor transformação por feature selecionada apenas na primeira janela de treino',
+    tech_me5:'StandardScaler ajustado dentro de cada janela rolling somente nos dados de treino',
+    other_models_note:'<strong>Outros modelos testados:</strong> LSTM (Long Short-Term Memory), regressão Ridge, CSR (Cross-Sectional Regression) e Random Forest também foram avaliados durante o desenvolvimento. Nenhum produziu resultados competitivos com os modelos lineares regularizados aqui apresentados — provavelmente devido à série temporal relativamente curta, à alta dimensionalidade do espaço de features e à instabilidade estrutural dos dados macroeconômicos brasileiros no período amostral. O código permanece disponível nos notebooks do projeto.',
+  }
+};
+
+function setLang(lang, btn) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (STRINGS[lang][key] !== undefined) el.innerHTML = STRINGS[lang][key];
+  });
+  document.documentElement.lang = lang==='pt'?'pt-BR':'en';
+  if (rawData) { buildPills(); render(); fillHeadlineCards(); renderMetricsTable(); }
+}
+
+loadData();
+</script>
+</body>
+</html>

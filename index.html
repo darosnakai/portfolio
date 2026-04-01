@@ -6,7 +6,10 @@
 <title>Daros Nakai — Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="favicon_dn.png" />
 <style>
 :root {
   --bg:         #0a0a0f;
@@ -23,7 +26,7 @@
   --a4: #c97bff;  /* violet      */
   --a5: #ffb347;  /* amber       */
   --mono: 'DM Mono', monospace;
-  --sans: 'Syne', sans-serif;
+  --sans: 'Space Grotesk', sans-serif;
   --radius: 12px;
   --tr: 0.22s ease;
 }
@@ -60,13 +63,6 @@ nav {
 .lang-btn { font-family:var(--mono); font-size:10px; letter-spacing:.1em; padding:5px 11px; border:none; background:transparent; color:var(--text-faint); cursor:pointer; transition:all var(--tr); }
 .lang-btn.active { background:var(--a1); color:#000; font-weight:500; }
 .lang-btn:not(.active):hover { color:var(--text); background:var(--border); }
-
-/* ── TICKER ─────────────────────────────────── */
-.ticker-wrap { margin-top:60px; background:var(--bg2); border-bottom:1px solid var(--border); overflow:hidden; height:36px; display:flex; align-items:center; position:relative; z-index:1; }
-.ticker-track { display:flex; animation:tickerScroll 32s linear infinite; white-space:nowrap; }
-.ticker-item { font-family:var(--mono); font-size:11px; letter-spacing:.08em; padding:0 32px; border-right:1px solid var(--border); color:var(--text-faint); white-space:nowrap; display:flex; align-items:center; gap:8px; }
-.ticker-item .up { color:#4ade80; } .ticker-item .dn { color:#f87171; } .ticker-item .neu { color:var(--text-dim); }
-@keyframes tickerScroll { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
 
 /* ── PAGE ───────────────────────────────────── */
 .page { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:0 48px 120px; }
@@ -118,8 +114,8 @@ nav {
   opacity:0; animation:fadeIn .8s ease .5s forwards;
 }
 .hero__photo-frame {
-  width: 300px;
-  height: 100%;                 /* fills the entire layout row height */
+  width: 400px;
+  height: 450px;                 /* fills the entire layout row height */
   min-height: 460px;            /* floor so it's never too short */
   border-radius: 16px;
   border: 1px solid var(--border-hi);
@@ -129,7 +125,7 @@ nav {
   transition: border-color var(--tr), box-shadow var(--tr);
 }
 .hero__photo-frame:hover { border-color:var(--a1); box-shadow:0 0 32px rgba(92,240,176,0.1); }
-.hero__photo-frame img { width:100%; height:100%; object-fit:cover; object-position:top center; display:block; }
+.hero__photo-frame img { width:100%; height:100%; object-fit:cover; object-position:45% 20%; display:block; }
 .hero__photo-placeholder {
   width:100%; height:100%;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
@@ -294,11 +290,6 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
   </div>
 </nav>
 
-<!-- ── TICKER ────────────────────────────────────────── -->
-<div class="ticker-wrap">
-  <div class="ticker-track" id="ticker-track"></div>
-</div>
-
 <div class="page">
 
   <!-- ── HERO ─────────────────────────────────────────── -->
@@ -322,22 +313,12 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
       </div>
 
       <!-- RIGHT: photo -->
+      <!-- RIGHT: photo -->
       <div class="hero__photo">
         <div class="hero__photo-frame">
-          <!--
-            TO ADD YOUR PHOTO:
-            Replace the div below with: <img src="your-photo.jpg" alt="Daros Nakai" />
-            and delete the hero__photo-placeholder div.
-          -->
-          <div class="hero__photo-placeholder">
-            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-            </svg>
-            <span data-i18n="photo_placeholder">Your Photo</span>
-          </div>
+          <img src="daros_picture.jpg" alt="Daros Nakai" />
         </div>
       </div>
-
     </div>
 
     <div class="hero__scroll">
@@ -350,7 +331,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
   <div class="strip-outer" style="margin-top:56px;">
     <div class="strip" id="strip">
       <div class="strip-item">
-        <div class="strip-val" data-i18n="strip_v1">BSc Analytics (Honours)</div>
+        <div class="strip-val" data-i18n="strip_v1">BSc Business Analytics (Honours)</div>
         <div class="strip-label" data-i18n="strip_l1">Degree</div>
       </div>
       <div class="strip-item">
@@ -362,8 +343,8 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <div class="strip-label" data-i18n="strip_l3">Specialization</div>
       </div>
       <div class="strip-item">
-        <div class="strip-val" data-i18n="strip_v4">Finalytics Capital</div>
-        <div class="strip-label" data-i18n="strip_l4">Founded · Student Investment Fund</div>
+        <div class="strip-val" data-i18n="strip_v4">Founder - Finalytics Capital</div>
+        <div class="strip-label" data-i18n="strip_l4">Student Investment Fund</div>
       </div>
       <div class="strip-item">
         <div class="strip-val" data-i18n="strip_v5">Teamwork &amp; Communication</div>
@@ -465,29 +446,6 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
 </footer>
 
 <script>
-/* ── TICKER ─────────────────────────────── */
-const TICKER_ITEMS = [
-  {label:'CPI YTD',   value:'+4.83%', cls:'dn'},
-  {label:'SELIC',     value:'13.25%', cls:'neu'},
-  {label:'USD/BRL',   value:'5.72',   cls:'dn'},
-  {label:'CPI TARGET',value:'3.00%',  cls:'neu'},
-  {label:'FOCUS 12M', value:'5.10%',  cls:'dn'},
-  {label:'IBOVESPA',  value:'+1.2%',  cls:'up'},
-  {label:'CPI YTD',   value:'+4.83%', cls:'dn'},
-  {label:'SELIC',     value:'13.25%', cls:'neu'},
-  {label:'USD/BRL',   value:'5.72',   cls:'dn'},
-  {label:'CPI TARGET',value:'3.00%',  cls:'neu'},
-  {label:'FOCUS 12M', value:'5.10%',  cls:'dn'},
-  {label:'IBOVESPA',  value:'+1.2%',  cls:'up'},
-];
-const track = document.getElementById('ticker-track');
-TICKER_ITEMS.forEach(item => {
-  const el = document.createElement('div');
-  el.className = 'ticker-item';
-  el.innerHTML = `${item.label}&nbsp;<span class="${item.cls}">${item.value}</span>`;
-  track.appendChild(el);
-});
-
 /* ── SCROLL REVEAL ──────────────────────── */
 const revealObs = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });

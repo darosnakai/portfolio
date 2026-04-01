@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Factor Investing Strategy — Daros Nakai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:         #0a0a0f;
+  --bg2:        #10101a;
+  --bg3:        #16162a;
+  --border:     rgba(255,255,255,0.07);
+  --border-hi:  rgba(255,255,255,0.15);
+  --text:       #e8e8f0;
+  --text-dim:   #888899;
+  --text-faint: #44445a;
+  --a1: #5cf0b0;
+  --a2: #ff6b6b;
+  --a3: #6eb5ff;
+  --a4: #c97bff;
+  --a5: #ffb347;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+  --radius: 12px;
+  --tr: 0.22s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(10,10,15,0.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav__logo{font-family:var(--mono);font-size:13px;color:var(--a1);letter-spacing:.08em;text-decoration:none;}
+.nav__logo span{color:var(--text-dim);}
+.nav__right{display:flex;align-items:center;gap:20px;}
+.nav__back{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color var(--tr);}
+.nav__back:hover{color:var(--a1);}
+.nav__breadcrumb{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.04em;}
+.nav__breadcrumb .sep{margin:0 8px;}
+.nav__breadcrumb .cur{color:var(--text-dim);}
+
+/* PAGE */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:104px 48px 120px;}
+
+/* SECTION DIVIDER */
+.section-divider{display:flex;align-items:center;gap:14px;margin-bottom:24px;margin-top:64px;}
+.section-divider__title{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap;}
+.section-divider__line{flex:1;height:1px;background:var(--border);}
+
+/* HEADER */
+.header{margin-bottom:48px;}
+.header__meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.header__meta-left{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;}
+.header__meta-right{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.06em;}
+.header__eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--a1);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.header__eyebrow::before{content:'';display:inline-block;width:28px;height:1px;background:var(--a1);}
+.header__title{font-size:clamp(30px,4.5vw,54px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin-bottom:18px;background:linear-gradient(135deg,#ffffff 0%,var(--a1) 55%,var(--a3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header__abstract{font-family:var(--mono);font-size:14px;color:var(--text-dim);line-height:1.75;max-width:720px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px;}
+.tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:4px 12px;border-radius:99px;border:1px solid var(--border-hi);color:var(--text-faint);background:var(--bg3);}
+.tag--green{border-color:color-mix(in srgb,var(--a1) 50%,transparent);color:var(--a1);background:color-mix(in srgb,var(--a1) 10%,transparent);}
+.tag--blue{border-color:color-mix(in srgb,var(--a3) 50%,transparent);color:var(--a3);background:color-mix(in srgb,var(--a3) 10%,transparent);}
+.tag--violet{border-color:color-mix(in srgb,var(--a4) 50%,transparent);color:var(--a4);background:color-mix(in srgb,var(--a4) 10%,transparent);}
+.tag--amber{border-color:color-mix(in srgb,var(--a5) 50%,transparent);color:var(--a5);background:color-mix(in srgb,var(--a5) 10%,transparent);}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:32px;}
+.kpi-item{padding:22px 20px;border-right:1px solid var(--border);background:var(--bg2);transition:background var(--tr);}
+.kpi-item:last-child{border-right:none;}
+.kpi-item:hover{background:var(--bg3);}
+.kpi-val{font-size:clamp(16px,1.8vw,22px);font-weight:800;letter-spacing:-.02em;color:var(--a1);line-height:1.2;margin-bottom:6px;}
+.kpi-val.neg{color:var(--a2);}
+.kpi-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-faint);}
+.kpi-sub{font-family:var(--mono);font-size:10px;color:var(--text-faint);margin-top:3px;opacity:.7;}
+
+/* CHART CARD */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px;transition:border-color var(--tr);}
+.chart-card:hover{border-color:var(--border-hi);}
+.chart-card__header{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.chart-card__title{font-size:15px;font-weight:700;letter-spacing:-.01em;}
+.chart-card__sub{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-top:3px;}
+.chart-card__body{padding:24px;}
+.chart-card__controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+
+/* TOGGLE BUTTONS */
+.tog-btn{font-family:var(--mono);font-size:10px;letter-spacing:.08em;padding:5px 12px;border-radius:99px;border:1px solid var(--border-hi);background:transparent;color:var(--text-dim);cursor:pointer;transition:all var(--tr);display:flex;align-items:center;gap:5px;}
+.tog-btn:hover{color:var(--text);border-color:var(--text-dim);}
+.tog-btn.active{color:#050510;font-weight:500;}
+.tog-btn .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tog-btn--log{border-color:var(--border);color:var(--text-faint);font-size:9px;padding:4px 10px;}
+.tog-btn--log.active{background:var(--bg3);color:var(--text-dim);border-color:var(--border-hi);}
+
+/* FACTOR TABS */
+.factor-tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:4px;}
+.factor-tab{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:8px 20px;border-radius:7px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;transition:all var(--tr);flex:1;text-align:center;}
+.factor-tab:hover{color:var(--text);}
+.factor-tab.active{background:var(--bg2);color:var(--text);border:1px solid var(--border-hi);}
+.factor-panel{display:none;}
+.factor-panel.active{display:block;}
+
+/* FACTOR KPI ROW */
+.factor-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.fkpi{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px 18px;}
+.fkpi__label{font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;}
+.fkpi__val{font-size:20px;font-weight:800;letter-spacing:-.02em;line-height:1;}
+.fkpi__val.pos{color:var(--a1);}
+.fkpi__val.neg{color:var(--a2);}
+.fkpi__val.neu{color:var(--a3);}
+
+/* TECH CARD / METHODOLOGY */
+.tech-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:28px;}
+.tech-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 22px;background:transparent;border:none;cursor:pointer;font-family:var(--sans);font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em;border-bottom:1px solid transparent;transition:background var(--tr);}
+.tech-toggle:hover{background:var(--bg3);}
+.tech-toggle.open{border-bottom-color:var(--border);}
+.tech-toggle-icon{font-family:var(--mono);font-size:18px;color:var(--a1);transition:transform .2s;}
+.tech-toggle.open .tech-toggle-icon{transform:rotate(45deg);}
+.tech-body{display:none;padding:28px;}
+.tech-body.open{display:block;}
+.tech-body--grid{display:none;padding:28px;grid-template-columns:1fr 1fr;gap:32px;}
+.tech-body--grid.open{display:grid;}
+.tech-block-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--a1);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.tech-list{list-style:none;display:flex;flex-direction:column;gap:11px;}
+.tech-list li{font-family:var(--mono);font-size:13px;color:var(--text-dim);line-height:1.65;display:flex;gap:10px;}
+.tech-list li::before{content:'→';color:var(--a1);flex-shrink:0;}
+.tech-prose{font-family:var(--mono);font-size:13px;color:var(--text-dim);line-height:1.75;}
+.tech-prose p{margin-bottom:12px;}
+.tech-prose p:last-child{margin-bottom:0;}
+.formula-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 18px;font-family:var(--mono);font-size:13px;color:var(--a1);letter-spacing:.03em;margin:12px 0;text-align:center;}
+.formula-box .formula-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:5px;}
+
+/* DISCLAIMER */
+.disclaimer{background:color-mix(in srgb,var(--a5) 6%,transparent);border:1px solid color-mix(in srgb,var(--a5) 18%,transparent);border-radius:var(--radius);padding:18px 22px;display:flex;gap:12px;align-items:flex-start;margin-bottom:28px;}
+.disclaimer__icon{font-family:var(--mono);font-size:13px;color:var(--a5);flex-shrink:0;padding-top:1px;}
+.disclaimer__text{font-family:var(--mono);font-size:13px;color:#6a6a82;line-height:1.7;}
+.disclaimer__text strong{color:var(--a5);font-weight:500;}
+
+/* LOADING */
+.loading-overlay{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px;}
+.spinner{width:28px;height:28px;border:2px solid var(--border-hi);border-top-color:var(--a1);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-family:var(--mono);font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-faint);}
+.error-msg{font-family:var(--mono);font-size:12px;color:var(--a2);background:color-mix(in srgb,var(--a2) 8%,transparent);border:1px solid color-mix(in srgb,var(--a2) 20%,transparent);border-radius:8px;padding:12px 16px;margin:16px 0;}
+
+/* LITERATURE */
+.lit-entry{padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.lit-entry:last-child{border-bottom:none;padding-bottom:0;margin-bottom:0;}
+.lit-authors{font-family:var(--mono);font-size:12px;color:var(--a1);letter-spacing:.04em;margin-bottom:5px;}
+.lit-title{font-family:var(--mono);font-size:13px;color:var(--text);line-height:1.55;margin-bottom:7px;}
+.lit-title em{font-style:italic;}
+.lit-note{font-family:var(--mono);font-size:12px;color:var(--text-faint);line-height:1.65;}
+
+/* CORRELATION GRID */
+.corr-grid{display:grid;grid-template-columns:80px repeat(4,1fr);gap:2px;font-family:var(--mono);font-size:11px;}
+.corr-cell{padding:10px 8px;text-align:center;border-radius:4px;display:flex;align-items:center;justify-content:center;}
+.corr-label{color:var(--text-dim);font-size:10px;letter-spacing:.08em;background:transparent!important;}
+.corr-header{color:var(--text-faint);font-size:10px;letter-spacing:.08em;background:var(--bg3)!important;border-radius:4px;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  nav{padding:0 20px;}
+  .page{padding:84px 20px 80px;}
+  .kpi-strip{grid-template-columns:repeat(2,1fr);}
+  .factor-kpi-row{grid-template-columns:repeat(2,1fr);}
+  .tech-body--grid{grid-template-columns:1fr;}
+  .chart-card__header{flex-direction:column;align-items:flex-start;}
+}
+
+/* REVEAL ANIMATION */
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease;}
+.reveal.visible{opacity:1;transform:none;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav__logo">DN<span> / portfolio</span></a>
+  <div class="nav__right">
+    <span class="nav__breadcrumb">
+      <a href="../index.html" style="color:var(--text-faint);text-decoration:none;font-family:var(--mono);font-size:11px;">Home</a>
+      <span class="sep">/</span>
+      <span class="cur">Factor Investing</span>
+    </span>
+    <a href="../index.html#projects" class="nav__back">← Projects</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header reveal">
+    <div class="header__meta">
+      <span class="header__meta-left">Quantitative Research · Factor Investing</span>
+      <span class="header__meta-right">S&amp;P 500 Universe · 2005–2026 · Monthly Rebalancing</span>
+    </div>
+    <div class="header__eyebrow">Systematic Asset Pricing</div>
+    <h1 class="header__title">Equity Factor<br>Investing Strategy</h1>
+    <p class="header__abstract">A long-short factor investing strategy built on three academically-grounded risk premia — Value, Momentum, and Quality — constructed from scratch on the S&amp;P 500 universe using MSCI-aligned scoring methodology, sector-neutral z-scores, and beta-neutral (BAB) portfolio construction. Each factor is validated independently and combined into a multi-factor portfolio benchmarked against the S&amp;P 500.</p>
+    <div class="tag-row">
+      <span class="tag tag--green">Factor Investing</span>
+      <span class="tag tag--blue">Long-Short Portfolios</span>
+      <span class="tag tag--violet">BAB Methodology</span>
+      <span class="tag tag--amber">MSCI Framework</span>
+      <span class="tag">S&amp;P 500</span>
+      <span class="tag">Python</span>
+      <span class="tag">HDF5</span>
+      <span class="tag">EODHD</span>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer reveal">
+    <span class="disclaimer__icon">⚠</span>
+    <span class="disclaimer__text"><strong>Research disclaimer.</strong> All results are backtested on historical data. No transaction costs, borrowing costs, or market impact are modelled. Results are not indicative of future performance and do not constitute investment advice.</span>
+  </div>
+
+  <!-- KPI STRIP — Multi-Factor Combined -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Multi-Factor Combined</span>
+    <div class="section-divider__line"></div>
+  </div>
+  <div class="kpi-strip reveal" id="kpi-strip">
+    <div class="kpi-item"><div class="kpi-val" id="kpi-ret">—</div><div class="kpi-label">Ann. Return</div><div class="kpi-sub">Equal-weight combo</div></div>
+    <div class="kpi-item"><div class="kpi-val" id="kpi-sharpe">—</div><div class="kpi-label">Sharpe Ratio</div><div class="kpi-sub">Annualised</div></div>
+    <div class="kpi-item"><div class="kpi-val neg" id="kpi-dd">—</div><div class="kpi-label">Max Drawdown</div><div class="kpi-sub">Peak to trough</div></div>
+    <div class="kpi-item"><div class="kpi-val" id="kpi-vol">—</div><div class="kpi-label">Ann. Volatility</div><div class="kpi-sub">Monthly std × √12</div></div>
+    <div class="kpi-item"><div class="kpi-val" id="kpi-period">—</div><div class="kpi-label">Sample Period</div><div class="kpi-sub">Common window</div></div>
+  </div>
+
+  <!-- CUMULATIVE RETURNS -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Performance</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="chart-card reveal">
+    <div class="chart-card__header">
+      <div>
+        <div class="chart-card__title">Cumulative Returns</div>
+        <div class="chart-card__sub">Growth of $1 invested — common window, monthly rebalancing</div>
+      </div>
+      <div class="chart-card__controls" id="cum-controls">
+        <button class="tog-btn active" data-series="multi" onclick="toggleSeries('cum','multi',this)" style="--c:#5cf0b0"><span class="dot" style="background:#5cf0b0"></span>Multi-Factor</button>
+        <button class="tog-btn active" data-series="value" onclick="toggleSeries('cum','value',this)" style="--c:#6eb5ff"><span class="dot" style="background:#6eb5ff"></span>Value</button>
+        <button class="tog-btn active" data-series="momentum" onclick="toggleSeries('cum','momentum',this)" style="--c:#c97bff"><span class="dot" style="background:#c97bff"></span>Momentum</button>
+        <button class="tog-btn active" data-series="quality" onclick="toggleSeries('cum','quality',this)" style="--c:#ffb347"><span class="dot" style="background:#ffb347"></span>Quality</button>
+        <button class="tog-btn active" data-series="sp500" onclick="toggleSeries('cum','sp500',this)" style="--c:#888899"><span class="dot" style="background:#888899"></span>S&amp;P 500</button>
+        <button class="tog-btn tog-btn--log" id="log-toggle" onclick="toggleLog()">Log Scale</button>
+      </div>
+    </div>
+    <div class="chart-card__body">
+      <div id="cum-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
+      <div id="cum-error" class="error-msg" style="display:none;"></div>
+      <canvas id="cum-chart" height="380" style="display:none;"></canvas>
+    </div>
+  </div>
+
+  <!-- DRAWDOWN -->
+  <div class="chart-card reveal">
+    <div class="chart-card__header">
+      <div>
+        <div class="chart-card__title">Drawdown</div>
+        <div class="chart-card__sub">Peak-to-trough decline from running maximum</div>
+      </div>
+    </div>
+    <div class="chart-card__body">
+      <div id="dd-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
+      <canvas id="dd-chart" height="260" style="display:none;"></canvas>
+    </div>
+  </div>
+
+  <!-- ROLLING SHARPE -->
+  <div class="chart-card reveal">
+    <div class="chart-card__header">
+      <div>
+        <div class="chart-card__title">Rolling 12-Month Sharpe Ratio</div>
+        <div class="chart-card__sub">Annualised Sharpe computed on trailing 12 monthly returns</div>
+      </div>
+    </div>
+    <div class="chart-card__body">
+      <div id="rs-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
+      <canvas id="rs-chart" height="260" style="display:none;"></canvas>
+    </div>
+  </div>
+
+  <!-- FACTOR BREAKDOWN -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Factor Breakdown</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="reveal">
+    <div class="factor-tabs">
+      <button class="factor-tab active" onclick="switchFactor('value',this)">Value</button>
+      <button class="factor-tab" onclick="switchFactor('momentum',this)">Momentum</button>
+      <button class="factor-tab" onclick="switchFactor('quality',this)">Quality</button>
+    </div>
+
+    <!-- VALUE PANEL -->
+    <div class="factor-panel active" id="panel-value">
+      <div class="factor-kpi-row" id="fkpi-value">
+        <div class="fkpi"><div class="fkpi__label">Ann. Return</div><div class="fkpi__val pos" id="v-ret">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Sharpe</div><div class="fkpi__val neu" id="v-sharpe">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Max Drawdown</div><div class="fkpi__val neg" id="v-dd">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Ann. Volatility</div><div class="fkpi__val neu" id="v-vol">—</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card__header"><div><div class="chart-card__title">Value Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — Price-to-Book (F_BP), Price-to-Earnings (F_EP), Dividend Yield (F_DY)</div></div></div>
+        <div class="chart-card__body"><canvas id="vsub-chart" height="260"></canvas></div>
+      </div>
+    </div>
+
+    <!-- MOMENTUM PANEL -->
+    <div class="factor-panel" id="panel-momentum">
+      <div class="factor-kpi-row">
+        <div class="fkpi"><div class="fkpi__label">Ann. Return</div><div class="fkpi__val pos" id="m-ret">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Sharpe</div><div class="fkpi__val neu" id="m-sharpe">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Max Drawdown</div><div class="fkpi__val neg" id="m-dd">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Ann. Volatility</div><div class="fkpi__val neu" id="m-vol">—</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card__header"><div><div class="chart-card__title">Momentum Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — 12M, 6M, 3M momentum, Price vs MA200, Price vs VWAP</div></div></div>
+        <div class="chart-card__body"><canvas id="msub-chart" height="260"></canvas></div>
+      </div>
+    </div>
+
+    <!-- QUALITY PANEL -->
+    <div class="factor-panel" id="panel-quality">
+      <div class="factor-kpi-row">
+        <div class="fkpi"><div class="fkpi__label">Ann. Return</div><div class="fkpi__val pos" id="q-ret">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Sharpe</div><div class="fkpi__val neu" id="q-sharpe">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Max Drawdown</div><div class="fkpi__val neg" id="q-dd">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Ann. Volatility</div><div class="fkpi__val neu" id="q-vol">—</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card__header"><div><div class="chart-card__title">Quality Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — ROE, ROA, Gross Profitability, FCF/Assets, CF/NI, Accruals</div></div></div>
+        <div class="chart-card__body"><canvas id="qsub-chart" height="260"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORRELATION -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Factor Correlation</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="chart-card reveal">
+    <div class="chart-card__header">
+      <div>
+        <div class="chart-card__title">Pairwise Correlation Matrix</div>
+        <div class="chart-card__sub">Monthly return correlations — low correlation supports diversification across factors</div>
+      </div>
+    </div>
+    <div class="chart-card__body">
+      <div id="corr-container" style="display:flex;justify-content:center;padding:8px 0;"></div>
+    </div>
+  </div>
+
+  <!-- METHODOLOGY -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Methodology</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <!-- Hypothesis -->
+  <div class="tech-card reveal">
+    <button class="tech-toggle" onclick="toggleSection(this)">
+      <span>Hypothesis &amp; Economic Rationale</span>
+      <span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body--grid">
+      <div>
+        <div class="tech-block-title">Why these factors persist</div>
+        <div class="tech-prose">
+          <p>Factor premia are explained by a combination of risk-based and behavioural arguments. Risk-based theories hold that higher expected returns compensate investors for bearing systematic risks that cannot be diversified away. Behavioural theories argue that cognitive biases — overreaction, anchoring, herding — create persistent mispricings that rational investors can exploit.</p>
+        </div>
+        <ul class="tech-list" style="margin-top:16px;">
+          <li><strong>Value:</strong> Cheap stocks carry higher fundamental risk (distress, low growth expectations). Investors also systematically overprice glamour stocks and underprice value stocks due to extrapolation bias.</li>
+          <li><strong>Momentum:</strong> Underreaction to news causes prices to drift in the direction of recent returns. Trend-following and disposition effects reinforce the anomaly.</li>
+          <li><strong>Quality:</strong> Investors underweight the persistence of high-quality earnings. High profitability is not fully reflected in prices due to limited attention and accounting complexity.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title">Score construction</div>
+        <ul class="tech-list">
+          <li><strong>Value Score</strong> = avg[z(−P/B), z(−P/E), z(DY)] — following MSCI Global Factor Index methodology</li>
+          <li><strong>Momentum Score</strong> = avg[z(12M ret), z(6M ret), z(3M ret), z(dist MA200), z(dist VWAP)]</li>
+          <li><strong>Quality Score</strong> = avg[z(ROE), z(ROA), z(Gross Profit/Assets), z(FCF/Assets), z(CF/NI), z(−Accruals)]</li>
+          <li>All z-scores are sector-neutral (computed within GICS sector × date groups) to avoid loading on sector composition</li>
+          <li>All metrics winsorised at 1st/99th percentile before scoring to remove outlier contamination</li>
+        </ul>
+        <div class="formula-box">
+          <span class="formula-label">General Score Formula</span>
+          Score<sub>i,t</sub> = (1/N) Σ z<sub>sector</sub>(winsorise(x<sub>i,t</sub>))
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data & Universe -->
+  <div class="tech-card reveal">
+    <button class="tech-toggle" onclick="toggleSection(this)">
+      <span>Data &amp; Universe</span>
+      <span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body--grid">
+      <div>
+        <div class="tech-block-title">Data sources</div>
+        <ul class="tech-list">
+          <li>Price data: EODHD API — adjusted daily close, volume, high/low for all S&amp;P 500 constituents. Stored in HDF5 format keyed by ticker.</li>
+          <li>Fundamentals: EODHD quarterly statements — Income Statement, Balance Sheet, Cash Flow. Filing dates used to shift signals to the next trading day after announcement.</li>
+          <li>Dividend Yield: EODHD dividend history — annualised DPS / price, recomputed daily.</li>
+          <li>S&amp;P 500 benchmark: daily index returns 1976–2026, compounded to monthly for comparison.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title">Universe construction</div>
+        <ul class="tech-list">
+          <li>All tickers that were ever constituents of the S&amp;P 500 — survivorship bias explicitly addressed by including historical members.</li>
+          <li>Once a stock exits the index, it is removed from the investable universe from that date forward.</li>
+          <li>Minimum price filter: $5. Minimum average dollar volume: $1M/day (252-day rolling average).</li>
+          <li>Minimum beta history: 252 trading days required before a stock can enter any portfolio.</li>
+          <li>Common backtest window: <strong>2005–2026</strong> — the overlap of all three factor date ranges.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Portfolio Construction -->
+  <div class="tech-card reveal">
+    <button class="tech-toggle" onclick="toggleSection(this)">
+      <span>Portfolio Construction — BAB Methodology</span>
+      <span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+        <div>
+          <div class="tech-block-title">Long-short construction</div>
+          <ul class="tech-list">
+            <li>At each month-end rebalance date, stocks are ranked by their factor score within the investable universe.</li>
+            <li><strong>Long leg:</strong> top 30% by score (highest quality/cheapest/strongest momentum)</li>
+            <li><strong>Short leg:</strong> bottom 30% by score</li>
+            <li>Equal weights within each leg — each stock receives 1/N of the leg's capital.</li>
+            <li>Minimum 150 names per leg required for a rebalance to proceed (clean universe filter).</li>
+          </ul>
+        </div>
+        <div>
+          <div class="tech-block-title">Beta-neutral scaling (BAB)</div>
+          <div class="tech-prose">
+            <p>Following Frazzini &amp; Pedersen (2014), each leg is scaled by the inverse of its ex-ante beta to achieve beta neutrality with respect to the market:</p>
+          </div>
+          <div class="formula-box">
+            <span class="formula-label">BAB Return Formula</span>
+            r<sub>BAB</sub> = (1/β<sub>L</sub>) · r<sub>L</sub> − (1/β<sub>H</sub>) · r<sub>H</sub>
+          </div>
+          <ul class="tech-list" style="margin-top:12px;">
+            <li>Rolling 252-day beta estimated as Cov(r<sub>i</sub>, r<sub>m</sub>) / Var(r<sub>m</sub>) for each stock at each rebalance date.</li>
+            <li>Beta bounds: [0.05, 3.0] — extreme betas excluded.</li>
+            <li>Monthly leg returns computed first, then BAB scaling applied — no daily compounding of the spread.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Validation -->
+  <div class="tech-card reveal">
+    <button class="tech-toggle" onclick="toggleSection(this)">
+      <span>Validation &amp; Limitations</span>
+      <span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body--grid">
+      <div>
+        <div class="tech-block-title">Validation checks performed</div>
+        <ul class="tech-list">
+          <li>Stock counts per leg monitored each month — portfolios with fewer than 150 names excluded.</li>
+          <li>Return sanity checks: extreme monthly returns (|r| > 50%) investigated and traced to specific stocks/events.</li>
+          <li>Sign consistency: confirmed that long legs have higher factor scores than short legs at each rebalance.</li>
+          <li>Look-ahead bias: fundamentals shifted to next trading day after filing date; momentum signals skip most-recent month (t−1).</li>
+          <li>Duplicate row checks performed on all HDF5 data layers before any portfolio construction.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title">Known limitations</div>
+        <ul class="tech-list">
+          <li><strong>No transaction costs.</strong> High-turnover factors (Momentum) are most affected. Real-world implementation would require netting trades across factors.</li>
+          <li><strong>No borrowing costs.</strong> Short-selling feasibility and locate costs are not modelled.</li>
+          <li><strong>Equal weights within legs.</strong> Size and liquidity biases are not controlled beyond the dollar-volume filter.</li>
+          <li><strong>Dividend Yield data starts 2005.</strong> F_DY sub-factor history is limited; the agglomerate Value score falls back to P/B and P/E only for any tickers with missing DY.</li>
+          <li><strong>Wikipedia S&amp;P 500 membership history</strong> is used for Quality — this has limited change history (approx. 2000 onwards), which may introduce mild survivorship bias in early periods.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- LITERATURE -->
+  <div class="section-divider reveal" style="margin-top:64px;">
+    <span class="section-divider__title">Literature</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="tech-card reveal" style="padding:0;">
+    <div style="padding:20px 24px 14px;border-bottom:1px solid var(--border);">
+      <span style="font-size:15px;font-weight:700;letter-spacing:-.01em;">Key References</span>
+    </div>
+    <div style="padding:24px 28px;display:flex;flex-direction:column;gap:20px;">
+
+      <div class="lit-entry">
+        <div class="lit-authors">Fama, E. F., &amp; French, K. R. (1992)</div>
+        <div class="lit-title"><em>The Cross-Section of Expected Stock Returns.</em> <span style="color:var(--text-faint);">The Journal of Finance, 47(2), 427–465.</span></div>
+        <div class="lit-note">The foundational paper establishing that size and book-to-market ratio explain the cross-section of expected returns — the direct academic basis for the Value factor. Introduced the two-factor extension to CAPM and catalysed the entire factor investing literature.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">Fama, E. F., &amp; French, K. R. (1993)</div>
+        <div class="lit-title"><em>Common risk factors in the returns on stocks and bonds.</em> <span style="color:var(--text-faint);">Journal of Financial Economics, 33(1), 3–56.</span></div>
+        <div class="lit-note">Formalises the three-factor model (market, size, value) that became the standard benchmark for evaluating alpha. The HML (High-Minus-Low) factor is the direct precursor to the Value factor implemented in this project.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">Jegadeesh, N., &amp; Titman, S. (1993)</div>
+        <div class="lit-title"><em>Returns to Buying Winners and Selling Losers: Implications for Stock Market Efficiency.</em> <span style="color:var(--text-faint);">The Journal of Finance, 48(1), 65–91.</span></div>
+        <div class="lit-note">The seminal paper establishing price momentum as a persistent anomaly in the US equity market. Documents that stocks with strong 3–12 month past returns continue to outperform. The core motivation for the Momentum factor in this project.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">Novy-Marx, R. (2013)</div>
+        <div class="lit-title"><em>The other side of value: The gross profitability premium.</em> <span style="color:var(--text-faint);">Journal of Financial Economics, 108(1), 1–28.</span></div>
+        <div class="lit-note">Demonstrates that gross profitability (revenue minus COGS, scaled by assets) is a powerful predictor of stock returns and is nearly orthogonal to the value factor. Directly motivates the inclusion of Gross Profitability as a Quality sub-factor.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">Frazzini, A., &amp; Pedersen, L. H. (2014)</div>
+        <div class="lit-title"><em>Betting Against Beta.</em> <span style="color:var(--text-faint);">Journal of Financial Economics, 111(1), 1–23.</span></div>
+        <div class="lit-note">Introduces the BAB factor and the leverage-constrained investor framework that explains why low-beta assets earn higher risk-adjusted returns. The BAB scaling methodology used in this project to construct beta-neutral portfolios follows directly from this paper.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">Asness, C. S., Frazzini, A., &amp; Pedersen, L. H. (2019)</div>
+        <div class="lit-title"><em>Quality Minus Junk.</em> <span style="color:var(--text-faint);">Review of Accounting Studies, 24(1), 34–112.</span></div>
+        <div class="lit-note">Defines and validates the Quality factor using profitability, growth, safety, and payout metrics. The composite scoring approach and the specific metrics used in this project — ROE, ROA, accruals, FCF — are closely aligned with the QMJ framework from this paper.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">Asness, C. S., Moskowitz, T. J., &amp; Pedersen, L. H. (2013)</div>
+        <div class="lit-title"><em>Value and Momentum Everywhere.</em> <span style="color:var(--text-faint);">The Journal of Finance, 68(3), 929–985.</span></div>
+        <div class="lit-note">Documents that value and momentum premia exist across asset classes and geographies, and that the two factors are negatively correlated — providing the key theoretical motivation for combining them in a multi-factor portfolio. Directly motivates this project's multi-factor combination.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">MSCI Inc. (2021)</div>
+        <div class="lit-title"><em>MSCI Global Investable Market Indexes Methodology.</em> <span style="color:var(--text-faint);">MSCI Index Methodology Documentation, February 2021.</span></div>
+        <div class="lit-note">The official MSCI documentation for factor index construction — including sector-neutral z-scoring, winsorisation procedures, and composite score aggregation. The Value and Momentum scoring methodology in this project follows the MSCI specification as closely as the available data permits.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">Sloan, R. G. (1996)</div>
+        <div class="lit-title"><em>Do Stock Prices Fully Reflect Information in Accruals and Cash Flows about Future Earnings?</em> <span style="color:var(--text-faint);">The Accounting Review, 71(3), 289–315.</span></div>
+        <div class="lit-note">Establishes that high accruals predict lower future returns — investors overweight accrual components of earnings relative to cash flows. This is the direct academic basis for including Accruals (with inverted sign) as a Quality sub-factor in this project.</div>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<footer style="position:relative;z-index:1;margin-top:100px;padding:28px 48px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin-left:auto;margin-right:auto;">
+  <span style="font-family:var(--mono);font-size:11px;color:var(--text-faint);">© 2025 Daros Nakai</span>
+  <ul style="display:flex;gap:24px;list-style:none;">
+    <li><a href="../index.html#projects" style="font-family:var(--mono);font-size:11px;color:var(--text-faint);text-decoration:none;letter-spacing:.08em;transition:color var(--tr);" onmouseover="this.style.color='var(--a1)'" onmouseout="this.style.color='var(--text-faint)'">Projects</a></li>
+    <li><a href="https://github.com/darosnakai" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--text-faint);text-decoration:none;letter-spacing:.08em;transition:color var(--tr);" onmouseover="this.style.color='var(--a1)'" onmouseout="this.style.color='var(--text-faint)'">GitHub</a></li>
+    <li><a href="https://www.linkedin.com/in/darosnakai/" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:11px;color:var(--text-faint);text-decoration:none;letter-spacing:.08em;transition:color var(--tr);" onmouseover="this.style.color='var(--a1)'" onmouseout="this.style.color='var(--text-faint)'">LinkedIn</a></li>
+  </ul>
+</footer>
+
+<script>
+// ─────────────────────────────────────────────────
+// DATA URLS — update these once files are in GitHub
+// ─────────────────────────────────────────────────
+const BASE = 'https://raw.githubusercontent.com/darosnakai/portfolio/main/data/factor_investing/';
+const URLS = {
+  value_ret:    BASE + 'f_value_returns.csv',
+  value_sub:    BASE + 'f_value_subfactors.csv',
+  mom_ret:      BASE + 'f_momentum_returns.csv',
+  mom_sub:      BASE + 'f_momentum_subfactors.csv',
+  qual_ret:     BASE + 'f_quality_returns.csv',
+  qual_sub:     BASE + 'f_quality_subfactors.csv',
+  sp500:        BASE + 'sp500_monthly_returns.csv',
+};
+
+// ─────────────────────────────────────────────────
+// CSV PARSER
+// ─────────────────────────────────────────────────
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split(',');
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = vals[i] ? vals[i].trim() : ''; });
+    return obj;
+  });
+}
+
+async function fetchCSV(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}: ${url}`);
+  return parseCSV(await r.text());
+}
+
+// ─────────────────────────────────────────────────
+// STATS HELPERS
+// ─────────────────────────────────────────────────
+function annReturn(rets) {
+  const m = rets.reduce((a,b)=>a+b,0)/rets.length;
+  return m * 12;
+}
+function annVol(rets) {
+  const m = rets.reduce((a,b)=>a+b,0)/rets.length;
+  const v = rets.reduce((a,b)=>a+(b-m)**2,0)/rets.length;
+  return Math.sqrt(v)*Math.sqrt(12);
+}
+function sharpe(rets) {
+  const r = annReturn(rets), v = annVol(rets);
+  return v > 0 ? r/v : 0;
+}
+function maxDD(rets) {
+  let peak = 1, nav = 1, dd = 0;
+  for (const r of rets) { nav *= (1+r); if(nav>peak) peak=nav; dd=Math.min(dd,nav/peak-1); }
+  return dd;
+}
+function cumNav(rets) {
+  let nav = 1; return rets.map(r => { nav *= (1+r); return nav; });
+}
+function rollingSharpe(rets, window=12) {
+  return rets.map((_,i) => {
+    if (i < window-1) return null;
+    const slice = rets.slice(i-window+1, i+1);
+    return sharpe(slice);
+  });
+}
+function correlation(a, b) {
+  const n = a.length;
+  const ma = a.reduce((x,y)=>x+y,0)/n, mb = b.reduce((x,y)=>x+y,0)/n;
+  let num=0, da=0, db=0;
+  for(let i=0;i<n;i++){num+=(a[i]-ma)*(b[i]-mb);da+=(a[i]-ma)**2;db+=(b[i]-mb)**2;}
+  return num/Math.sqrt(da*db);
+}
+
+// ─────────────────────────────────────────────────
+// CHART DEFAULTS
+// ─────────────────────────────────────────────────
+const C = { value:'#6eb5ff', momentum:'#c97bff', quality:'#ffb347', multi:'#5cf0b0', sp500:'#888899' };
+Chart.defaults.color = '#888899';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = "'DM Mono', monospace";
+Chart.defaults.font.size = 11;
+
+function baseLineOpts(title) {
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    interaction: { mode:'index', intersect:false },
+    plugins: {
+      legend: { display:false },
+      tooltip: {
+        backgroundColor:'rgba(16,16,26,0.95)',
+        borderColor:'rgba(255,255,255,0.1)',
+        borderWidth:1,
+        titleFont:{family:"'DM Mono',monospace",size:11},
+        bodyFont:{family:"'DM Mono',monospace",size:11},
+        padding:10,
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)}`
+        }
+      }
+    },
+    scales: {
+      x: { grid:{color:'rgba(255,255,255,0.03)'}, ticks:{maxTicksLimit:10,color:'#44445a'} },
+      y: { grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#44445a'} }
+    }
+  };
+}
+
+// ─────────────────────────────────────────────────
+// GLOBAL STATE
+// ─────────────────────────────────────────────────
+let DATA = {};
+let CUM_CHART, DD_CHART, RS_CHART, VSUB_CHART, MSUB_CHART, QSUB_CHART;
+let logScale = false;
+const seriesVisible = { cum: { multi:true, value:true, momentum:true, quality:true, sp500:true } };
+
+// ─────────────────────────────────────────────────
+// MAIN LOAD
+// ─────────────────────────────────────────────────
+async function loadAll() {
+  try {
+    const [vr, vs, mr, ms, qr, qs, sp] = await Promise.all([
+      fetchCSV(URLS.value_ret), fetchCSV(URLS.value_sub),
+      fetchCSV(URLS.mom_ret),   fetchCSV(URLS.mom_sub),
+      fetchCSV(URLS.qual_ret),  fetchCSV(URLS.qual_sub),
+      fetchCSV(URLS.sp500),
+    ]);
+
+    // Parse dates and returns
+    const parse = (rows, dateCol, retCol) =>
+      rows.filter(r => r[dateCol] && r[retCol] && r[retCol]!=='').map(r => ({
+        date: r[dateCol].substring(0,7),
+        ret: parseFloat(r[retCol])
+      })).filter(r => !isNaN(r.ret));
+
+    const val   = parse(vr, 'date', 'F_Value');
+    const mom   = parse(mr, 'date', 'F_Momentum');
+    const qual  = parse(qr, 'date', 'F_Quality');
+    const spx   = parse(sp, 'date', sp[0] ? Object.keys(sp[0]).find(k=>k!=='date') : 'sp500_ret');
+
+    // Find common window
+    const sets = [val,mom,qual,spx].map(s => new Set(s.map(r=>r.date)));
+    const common = [...sets[0]].filter(d => sets.every(s => s.has(d))).sort();
+
+    const filter = (series, dates) => {
+      const map = Object.fromEntries(series.map(r=>[r.date,r.ret]));
+      return dates.map(d => map[d] ?? null).filter(v => v!==null);
+    };
+    const filterDates = (series, dates) => {
+      const map = Object.fromEntries(series.map(r=>[r.date,r.ret]));
+      return dates.filter(d => map[d] !== undefined && map[d] !== null);
+    };
+
+    const vRets = filter(val, common);
+    const mRets = filter(mom, common);
+    const qRets = filter(qual, common);
+    const sRets = filter(spx, common);
+    const multiRets = vRets.map((v,i) => (v + mRets[i] + qRets[i]) / 3);
+    const labels = filterDates(val, common);
+
+    DATA = { labels, vRets, mRets, qRets, sRets, multiRets, vs, ms, qs };
+
+    buildKPIs();
+    buildCumChart();
+    buildDDChart();
+    buildRSChart();
+    buildSubFactorCharts();
+    buildCorrelation();
+    buildFactorKPIs();
+
+  } catch(e) {
+    console.error(e);
+    document.getElementById('cum-loading').style.display='none';
+    const err = document.getElementById('cum-error');
+    err.style.display='block';
+    err.textContent = `Data could not be loaded. Please check that the CSV files are available at the configured GitHub URL. Error: ${e.message}`;
+    document.getElementById('dd-loading').style.display='none';
+    document.getElementById('rs-loading').style.display='none';
+  }
+}
+
+function fmt(n, pct=true) {
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  return (pct ? (n*100).toFixed(1)+'%' : n.toFixed(2));
+}
+
+function buildKPIs() {
+  const { multiRets, labels } = DATA;
+  document.getElementById('kpi-ret').textContent    = fmt(annReturn(multiRets));
+  document.getElementById('kpi-sharpe').textContent = fmt(sharpe(multiRets), false);
+  document.getElementById('kpi-dd').textContent     = fmt(maxDD(multiRets));
+  document.getElementById('kpi-vol').textContent    = fmt(annVol(multiRets));
+  document.getElementById('kpi-period').textContent = `${labels[0]} – ${labels[labels.length-1]}`;
+}
+
+function buildFactorKPIs() {
+  const { vRets, mRets, qRets } = DATA;
+  const setKPI = (prefix, rets) => {
+    document.getElementById(prefix+'-ret').textContent    = fmt(annReturn(rets));
+    document.getElementById(prefix+'-sharpe').textContent = fmt(sharpe(rets),false);
+    document.getElementById(prefix+'-dd').textContent     = fmt(maxDD(rets));
+    document.getElementById(prefix+'-vol').textContent    = fmt(annVol(rets));
+  };
+  setKPI('v', vRets); setKPI('m', mRets); setKPI('q', qRets);
+}
+
+function buildCumChart() {
+  const { labels, vRets, mRets, qRets, sRets, multiRets } = DATA;
+  document.getElementById('cum-loading').style.display='none';
+  const canvas = document.getElementById('cum-chart');
+  canvas.style.display='block';
+
+  const opts = baseLineOpts('Cumulative Return');
+  opts.scales.y.ticks.callback = v => v.toFixed(1)+'×';
+
+  CUM_CHART = new Chart(canvas, {
+    type:'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Multi-Factor', data:cumNav(multiRets), borderColor:C.multi,   backgroundColor:'transparent', borderWidth:2.5, pointRadius:0, tension:.3 },
+        { label:'Value',        data:cumNav(vRets),     borderColor:C.value,   backgroundColor:'transparent', borderWidth:1.8, pointRadius:0, tension:.3 },
+        { label:'Momentum',     data:cumNav(mRets),     borderColor:C.momentum,backgroundColor:'transparent', borderWidth:1.8, pointRadius:0, tension:.3 },
+        { label:'Quality',      data:cumNav(qRets),     borderColor:C.quality, backgroundColor:'transparent', borderWidth:1.8, pointRadius:0, tension:.3 },
+        { label:'S&P 500',      data:cumNav(sRets),     borderColor:C.sp500,   backgroundColor:'transparent', borderWidth:1.8, pointRadius:0, tension:.3, borderDash:[4,3] },
+      ]
+    },
+    options: opts
+  });
+}
+
+function buildDDChart() {
+  const { labels, vRets, mRets, qRets, sRets, multiRets } = DATA;
+  document.getElementById('dd-loading').style.display='none';
+  const canvas = document.getElementById('dd-chart');
+  canvas.style.display='block';
+
+  const dd = rets => {
+    let peak=1, nav=1;
+    return rets.map(r => { nav*=(1+r); if(nav>peak) peak=nav; return (nav/peak-1)*100; });
+  };
+
+  const opts = baseLineOpts('Drawdown');
+  opts.scales.y.ticks.callback = v => v.toFixed(0)+'%';
+
+  DD_CHART = new Chart(canvas, {
+    type:'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Multi-Factor', data:dd(multiRets), borderColor:C.multi,   fill:true, backgroundColor:'rgba(92,240,176,0.04)', borderWidth:2, pointRadius:0, tension:.3 },
+        { label:'Value',        data:dd(vRets),     borderColor:C.value,   backgroundColor:'transparent', borderWidth:1.5, pointRadius:0, tension:.3 },
+        { label:'Momentum',     data:dd(mRets),     borderColor:C.momentum,backgroundColor:'transparent', borderWidth:1.5, pointRadius:0, tension:.3 },
+        { label:'Quality',      data:dd(qRets),     borderColor:C.quality, backgroundColor:'transparent', borderWidth:1.5, pointRadius:0, tension:.3 },
+        { label:'S&P 500',      data:dd(sRets),     borderColor:C.sp500,   backgroundColor:'transparent', borderWidth:1.5, pointRadius:0, tension:.3, borderDash:[4,3] },
+      ]
+    },
+    options: opts
+  });
+}
+
+function buildRSChart() {
+  const { labels, vRets, mRets, qRets } = DATA;
+  document.getElementById('rs-loading').style.display='none';
+  const canvas = document.getElementById('rs-chart');
+  canvas.style.display='block';
+
+  const rs_v = rollingSharpe(vRets);
+  const rs_m = rollingSharpe(mRets);
+  const rs_q = rollingSharpe(qRets);
+
+  const opts = baseLineOpts('Rolling Sharpe');
+  opts.scales.y.ticks.callback = v => v.toFixed(1);
+
+  RS_CHART = new Chart(canvas, {
+    type:'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Value',    data:rs_v, borderColor:C.value,    backgroundColor:'transparent', borderWidth:1.8, pointRadius:0, tension:.4, spanGaps:true },
+        { label:'Momentum', data:rs_m, borderColor:C.momentum, backgroundColor:'transparent', borderWidth:1.8, pointRadius:0, tension:.4, spanGaps:true },
+        { label:'Quality',  data:rs_q, borderColor:C.quality,  backgroundColor:'transparent', borderWidth:1.8, pointRadius:0, tension:.4, spanGaps:true },
+      ]
+    },
+    options: opts
+  });
+}
+
+function buildSubFactorCharts() {
+  const { vs, ms, qs, labels } = DATA;
+
+  // Compute annualised returns per sub-factor column
+  function subAnn(rows, col, dateSet) {
+    const filtered = rows.filter(r => r['date'] && dateSet.has(r['date'].substring(0,7)) && r[col] && r[col]!=='');
+    const rets = filtered.map(r => parseFloat(r[col])).filter(v => !isNaN(v));
+    return rets.length ? annReturn(rets)*100 : null;
+  }
+
+  const dateSet = new Set(labels);
+
+  // Value sub-factors
+  const vCols = ['F_BP','F_EP','F_DY'];
+  const vLabels = ['Price-to-Book','Price-to-Earnings','Dividend Yield'];
+  const vData = vCols.map(c => subAnn(vs, c, dateSet));
+
+  VSUB_CHART = buildBarChart('vsub-chart', vLabels, vData, C.value);
+
+  // Momentum sub-factors
+  const mCols = ['F_12MRet','F_6MRet','F_3MRet','F_PriceMA','F_VWAP'];
+  const mLabels = ['12M Return','6M Return','3M Return','Price vs MA200','Price vs VWAP'];
+  const mData = mCols.map(c => subAnn(ms, c, dateSet));
+
+  MSUB_CHART = buildBarChart('msub-chart', mLabels, mData, C.momentum);
+
+  // Quality sub-factors
+  const qCols = ['F_ROE','F_ROA','F_GrossProf','F_FCFAssets','F_CFNI','F_Accruals'];
+  const qLabels = ['ROE','ROA','Gross Profit/Assets','FCF/Assets','CF/Net Income','Accruals'];
+  const qData = qCols.map(c => subAnn(qs, c, dateSet));
+
+  QSUB_CHART = buildBarChart('qsub-chart', qLabels, qData, C.quality);
+}
+
+function buildBarChart(canvasId, labels, data, color) {
+  const canvas = document.getElementById(canvasId);
+  const colors = data.map(v => v >= 0 ? color : '#ff6b6b');
+
+  return new Chart(canvas, {
+    type:'bar',
+    data: {
+      labels,
+      datasets: [{
+        label:'Ann. Return (%)',
+        data,
+        backgroundColor: colors.map(c => c+'33'),
+        borderColor: colors,
+        borderWidth: 1.5,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:true,
+      plugins: {
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'rgba(16,16,26,0.95)',
+          borderColor:'rgba(255,255,255,0.1)',
+          borderWidth:1,
+          callbacks:{ label: ctx => ` ${ctx.parsed.y!==null ? ctx.parsed.y.toFixed(2)+'%' : 'No data'}` }
+        }
+      },
+      scales: {
+        x:{ grid:{display:false}, ticks:{color:'#44445a',font:{size:10}} },
+        y:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#44445a',callback:v=>v.toFixed(1)+'%'} }
+      }
+    }
+  });
+}
+
+function buildCorrelation() {
+  const { vRets, mRets, qRets, sRets } = DATA;
+  const series = [
+    { label:'Value',    rets:vRets,   color:C.value },
+    { label:'Momentum', rets:mRets,   color:C.momentum },
+    { label:'Quality',  rets:qRets,   color:C.quality },
+    { label:'S&P 500',  rets:sRets,   color:C.sp500 },
+  ];
+
+  const n = series.length;
+  const container = document.getElementById('corr-container');
+
+  // Build 5-column grid (label col + 4 series)
+  let html = '<div style="display:grid;grid-template-columns:90px repeat(4,100px);gap:3px;font-family:var(--mono);font-size:11px;">';
+
+  // Header row
+  html += '<div style="padding:8px;"></div>';
+  series.forEach(s => {
+    html += `<div style="padding:8px 4px;text-align:center;color:${s.color};font-size:10px;letter-spacing:.06em;">${s.label}</div>`;
+  });
+
+  // Data rows
+  series.forEach((si, i) => {
+    html += `<div style="padding:8px 4px;color:var(--text-dim);font-size:10px;letter-spacing:.06em;display:flex;align-items:center;">${si.label}</div>`;
+    series.forEach((sj, j) => {
+      const corr = correlation(si.rets, sj.rets);
+      const abs = Math.abs(corr);
+      let bg, textColor;
+      if (i===j) {
+        bg='rgba(255,255,255,0.05)'; textColor='var(--text-dim)';
+      } else if (corr > 0) {
+        bg=`rgba(110,181,255,${abs*0.5})`; textColor=abs>0.5?'#050510':'var(--a3)';
+      } else {
+        bg=`rgba(255,107,107,${abs*0.5})`; textColor=abs>0.5?'#050510':'var(--a2)';
+      }
+      html += `<div style="padding:10px 4px;text-align:center;background:${bg};border-radius:4px;color:${textColor};font-weight:${abs>0.4?700:400};">${i===j?'1.00':corr.toFixed(2)}</div>`;
+    });
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+// ─────────────────────────────────────────────────
+// INTERACTIVITY
+// ─────────────────────────────────────────────────
+function toggleSeries(chart, key, btn) {
+  if (chart==='cum' && CUM_CHART) {
+    const map = {multi:0,value:1,momentum:2,quality:3,sp500:4};
+    const idx = map[key];
+    const ds = CUM_CHART.data.datasets[idx];
+    const vis = !seriesVisible.cum[key];
+    seriesVisible.cum[key] = vis;
+    ds.hidden = !vis;
+    CUM_CHART.update();
+    btn.classList.toggle('active', vis);
+    if (vis) btn.style.background=C[key]; else btn.style.background='transparent';
+  }
+}
+
+// Init toggle button styles
+document.querySelectorAll('.tog-btn[data-series]').forEach(btn => {
+  const key = btn.dataset.series;
+  if (key && C[key]) btn.style.background = C[key];
+});
+
+function toggleLog() {
+  if (!CUM_CHART) return;
+  logScale = !logScale;
+  CUM_CHART.options.scales.y.type = logScale ? 'logarithmic' : 'linear';
+  CUM_CHART.update();
+  document.getElementById('log-toggle').classList.toggle('active', logScale);
+}
+
+function switchFactor(name, btn) {
+  document.querySelectorAll('.factor-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.factor-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+function toggleSection(btn) {
+  btn.classList.toggle('open');
+  const body = btn.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ─────────────────────────────────────────────────
+// SCROLL REVEAL
+// ─────────────────────────────────────────────────
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold:0.08 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// ─────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────
+loadAll();
+</script>
+</body>
+</html>

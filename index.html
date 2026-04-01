@@ -383,14 +383,14 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
       <!-- Project 1 -->
       <a href="projects/brazilian-inflation-prediction.html" class="project-card" style="--card-accent:#5cf0b0;">
         <div class="card__tag-row">
+          <!-- Interactive Project — amber first -->
+          <span class="card__tag card__tag--amber" data-i18n="card1_tag4">Interactive Project</span>
           <!-- Machine Learning — green -->
           <span class="card__tag card__tag--green" data-i18n="card1_tag1">Machine Learning</span>
           <!-- Macroeconomics — blue -->
           <span class="card__tag card__tag--blue" data-i18n="card1_tag2">Macroeconomics</span>
           <!-- Time Series — violet -->
           <span class="card__tag card__tag--violet" data-i18n="card1_tag3">Time Series</span>
-          <!-- Interactive Project — amber -->
-          <span class="card__tag card__tag--amber" data-i18n="card1_tag4">Interactive Project</span>
         </div>
         <h3 class="card__title" data-i18n="card1_title">Predicting Inflation with Machine Learning</h3>
         <p class="card__desc" data-i18n="card1_desc">Can quantitative models beat the Central Bank's analysts on inflation forecasting? Regularised ML models trained on 100+ macroeconomic indicators, benchmarked against the official market consensus.</p>
@@ -404,19 +404,23 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         </div>
       </a>
 
-      <!-- Placeholder card -->
-      <div class="project-card card--soon" style="--card-accent:#6eb5ff;">
-        <span class="card__soon-badge" data-i18n="soon_badge">Coming Soon</span>
+      <!-- Project 2 — CAPM Risk-Return -->
+      <a href="projects/capm-risk-return.html" class="project-card" style="--card-accent:#6eb5ff;">
         <div class="card__tag-row">
-          <span class="card__tag card__tag--blue" data-i18n="card2_tag">Quantitative Finance</span>
+          <span class="card__tag card__tag--amber">Interactive Tool</span>
+          <span class="card__tag card__tag--blue">Equities</span>
+          <span class="card__tag card__tag--violet">Risk Analysis</span>
         </div>
-        <h3 class="card__title" data-i18n="card2_title">Next Project</h3>
-        <p class="card__desc" data-i18n="card2_desc">A new quantitative research project is in progress. Check back soon.</p>
+        <h3 class="card__title" data-i18n="card2_title">Equity Risk Analytics Dashboard (CAPM-Based)</h3>
+        <p class="card__desc" data-i18n="card2_desc">Live, browser-based interactive risk-analysis tool, using the CAPM framework. Select any S&amp;P 500 stocks, compute beta and expected returns, and visualise the Security Market Line — powered by real Yahoo Finance and EODHD data.</p>
         <div class="card__footer">
-          <div class="card__tech"><span class="card__tech-item">TBD</span></div>
+          <div class="card__tech">
+            <span class="card__tech-item">Python</span>
+            <span class="card__tech-item">Yahoo Finance &amp; EODHD API</span>
+          </div>
           <span class="card__arrow">↗</span>
         </div>
-      </div>
+      </a>
 
     </div>
   </section>

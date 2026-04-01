@@ -343,7 +343,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <div class="strip-label" data-i18n="strip_l3">Specialization</div>
       </div>
       <div class="strip-item">
-        <div class="strip-val" data-i18n="strip_v4">Founder - Finalytics Capital</div>
+        <div class="strip-val" data-i18n="strip_v4">Founder — Finalytics Capital</div>
         <div class="strip-label" data-i18n="strip_l4">Student Investment Fund</div>
       </div>
       <div class="strip-item">
@@ -388,9 +388,9 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
       <!-- Project 2 — CAPM Risk-Return -->
       <a href="projects/capm-risk-return.html" class="project-card" style="--card-accent:#6eb5ff;">
         <div class="card__tag-row">
-          <span class="card__tag card__tag--amber">Interactive Tool</span>
-          <span class="card__tag card__tag--blue">Equities</span>
-          <span class="card__tag card__tag--violet">Risk Analysis</span>
+          <span class="card__tag card__tag--amber" data-i18n="card2_tag1">Interactive Tool</span>
+          <span class="card__tag card__tag--blue"  data-i18n="card2_tag2">Equities</span>
+          <span class="card__tag card__tag--violet" data-i18n="card2_tag3">Risk Analysis</span>
         </div>
         <h3 class="card__title" data-i18n="card2_title">Equity Risk Analytics Dashboard (CAPM-Based)</h3>
         <p class="card__desc" data-i18n="card2_desc">Live, browser-based interactive risk-analysis tool, using the CAPM framework. Select any S&amp;P 500 stocks, compute beta and expected returns, and visualise the Security Market Line — powered by real Yahoo Finance and EODHD data.</p>
@@ -424,7 +424,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <div class="about-block__title" data-i18n="about_tools">Tools &amp; Stack</div>
         <ul class="about-list">
           <li>Python — scikit-learn, pandas, NumPy, Plotly</li>
-          <li data-i18n="about_t2">Data sources — BCB SGS API, IBGE SIDRA, Focus / Boletim Focus</li>
+          <li data-i18n="about_t2">Data sources — Central Bank`s API, EODHD API, Yahoo Finance</li>
           <li data-i18n="about_t3">Regularised regression — Lasso, Elastic Net, ASGL adaptive variants</li>
           <li data-i18n="about_t4">Walk-forward backtesting with TimeSeriesSplit cross-validation</li>
         </ul>
@@ -472,7 +472,7 @@ const STRINGS = {
     strip_v1:'BSc Analytics (Honours)', strip_l1:'Degree',
     strip_v2:'University of Amsterdam',  strip_l2:'Education',
     strip_v3:'Finance &amp; Economics',  strip_l3:'Specialization',
-    strip_v4:'Finalytics Capital',       strip_l4:'Founded · Student Investment Fund',
+    strip_v4:'Founder — Finalytics Capital', strip_l4:'Student Investment Fund',
     strip_v5:'Teamwork &amp; Communication', strip_l5:'Soft Skills',
     scroll_label:'scroll',
     projects_eyebrow:'Selected Work', projects_title:'Projects',
@@ -482,14 +482,15 @@ const STRINGS = {
     card1_title:'Predicting Inflation with Machine Learning',
     card1_desc:"Can quantitative models beat the Central Bank's analysts on inflation forecasting? Regularised ML models trained on 100+ macroeconomic indicators, benchmarked against the official market consensus.",
     soon_badge:'Coming Soon', card2_tag:'Quantitative Finance',
-    card2_title:'Next Project', card2_desc:'A new quantitative research project is in progress. Check back soon.',
+    card2_tag1:'Interactive Tool', card2_tag2:'Equities', card2_tag3:'Risk Analysis',
+    card2_title:'Equity Risk Analytics Dashboard (CAPM-Based)', card2_desc:'Live, browser-based interactive risk-analysis tool, using the CAPM framework. Select any S&amp;P 500 stocks, compute beta and expected returns, and visualise the Security Market Line — powered by real Yahoo Finance and EODHD data',
     about_eyebrow:'Background', about_title:'About Me',
     about_interests:'Interests', about_tools:'Tools &amp; Stack',
     about_i1:'Machine learning applied to macroeconomic forecasting and financial markets',
     about_i2:'Algorithm development to identify systematic edges in financial markets',
     about_i3:'Brazilian economy: inflation dynamics, monetary policy, credit and fiscal indicators',
     about_i4:'Quantitative research bridging econometrics and modern ML techniques',
-    about_t2:'Data sources — BCB SGS API, IBGE SIDRA, Focus / Boletim Focus',
+    about_t2:'Data sources — Central Bank`s API, EODHD API, Yahoo Finance',
     about_t3:'Regularised regression — Lasso, Elastic Net, ASGL adaptive variants',
     about_t4:'Walk-forward backtesting with TimeSeriesSplit cross-validation',
   },
@@ -503,7 +504,7 @@ const STRINGS = {
     strip_v1:'BSc Analytics (Honours)',  strip_l1:'Graduação',
     strip_v2:'Universidade de Amsterdã', strip_l2:'Educação',
     strip_v3:'Finanças &amp; Economia',  strip_l3:'Especialização',
-    strip_v4:'Finalytics Capital',       strip_l4:'Fundador · Fundo de Investimento',
+    strip_v4:'Fundador — Finalytics Capital', strip_l4:'Fundo de Investimento',
     strip_v5:'Trabalho em Equipe &amp; Comunicação', strip_l5:'Soft Skills',
     scroll_label:'rolar',
     projects_eyebrow:'Trabalhos Selecionados', projects_title:'Projetos',
@@ -513,7 +514,8 @@ const STRINGS = {
     card1_title:'Prevendo Inflação com Machine Learning',
     card1_desc:'Modelos de ML regularizados conseguem superar os analistas do Banco Central na previsão da inflação? Modelos treinados em mais de 100 indicadores macroeconômicos, comparados ao consenso oficial de mercado.',
     soon_badge:'Em Breve', card2_tag:'Finanças Quantitativas',
-    card2_title:'Próximo Projeto', card2_desc:'Um novo projeto de pesquisa quantitativa em desenvolvimento.',
+    card2_tag1:'Ferramenta Interativa', card2_tag2:'Ações', card2_tag3:'Análise de Risco',
+    card2_title:'Painel de Risco de Ações (Baseado no CAPM)', card2_desc:'Ferramenta interativa de análise de risco, disponível diretamente no navegador, usando o modelo CAPM. Selecione ações do S&amp;P 500, calcule o beta e os retornos esperados, e visualize a Linha do Mercado de Títulos — com dados reais do Yahoo Finance e da EODHD.',
     about_eyebrow:'Formação', about_title:'Sobre Mim',
     about_interests:'Interesses', about_tools:'Ferramentas &amp; Stack',
     about_i1:'Machine learning aplicado à previsão macroeconômica e mercados financeiros',

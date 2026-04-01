@@ -196,6 +196,13 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
 .other-models-note__text{font-family:var(--mono);font-size:15px;color:var(--text-faint);line-height:1.7;}
 .other-models-note__text strong{color:var(--text-dim);font-weight:500;}
 
+/* ── LITERATURE ── */
+.lit-entry{padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.lit-authors{font-family:var(--mono);font-size:12px;color:var(--a1);letter-spacing:.04em;margin-bottom:5px;}
+.lit-title{font-family:var(--mono);font-size:13px;color:var(--text);line-height:1.55;margin-bottom:7px;}
+.lit-title em{font-style:italic;}
+.lit-note{font-family:var(--mono);font-size:12px;color:var(--text-faint);line-height:1.65;}
+
 @media(max-width:768px){
   nav{padding:0 20px;}.nav__breadcrumb{display:none;}
   .page{padding:84px 20px 80px;}
@@ -436,6 +443,45 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;heigh
     </span>
   </div>
 
+  <!-- ── LITERATURE ─────────────────────────── -->
+  <div class="section-divider" style="margin-top:64px;">
+    <span class="section-divider__title" data-i18n="lit_eyebrow">Literature</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="tech-card" style="padding:0;">
+    <div style="padding:20px 24px 14px; border-bottom:1px solid var(--border);">
+      <span style="font-size:15px;font-weight:700;letter-spacing:-.01em;" data-i18n="lit_title">Key References</span>
+    </div>
+    <div style="padding:24px 28px;display:flex;flex-direction:column;gap:20px;" id="lit-list">
+
+      <div class="lit-entry">
+        <div class="lit-authors">López de Prado, M. (2018)</div>
+        <div class="lit-title" data-i18n="lit_1_title"><em>Advances in Financial Machine Learning.</em> Wiley.</div>
+        <div class="lit-note" data-i18n="lit_1_note">The foundational reference for ML applied to financial and economic data. Covers backtesting methodology, feature engineering, and avoiding overfitting — all directly relevant to this project's walk-forward design.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">García, M., Medeiros, M. C., &amp; Vasconcelos, G. F. R. (2017)</div>
+        <div class="lit-title"><em data-i18n="lit_2_title">Real-time inflation forecasting with high-dimensional models: The case of Brazil.</em> <span style="color:var(--text-faint);">International Journal of Forecasting, 33(3), 679–693.</span></div>
+        <div class="lit-note" data-i18n="lit_2_note">Introduces Complete Subset Regression (CSR) as a forecasting device for Brazilian inflation specifically — the CSR benchmark referenced in this project. The paper evaluates high-dimensional models on real-time IPCA data.</div>
+      </div>
+
+      <div class="lit-entry">
+        <div class="lit-authors">Tibshirani, R. (1996)</div>
+        <div class="lit-title"><em data-i18n="lit_3_title">Regression Shrinkage and Selection via the Lasso.</em> <span style="color:var(--text-faint);">Journal of the Royal Statistical Society Series B, 58(1), 267–288.</span></div>
+        <div class="lit-note" data-i18n="lit_3_note">The original Lasso paper. Proposes L1-penalised regression for simultaneous variable selection and coefficient shrinkage — the core regularisation method used in this project.</div>
+      </div>
+
+      <div class="lit-entry" style="border-bottom:none;padding-bottom:0;margin-bottom:0;">
+        <div class="lit-authors">Hoerl, A. E., &amp; Kennard, R. W. (1970)</div>
+        <div class="lit-title"><em data-i18n="lit_4_title">Ridge Regression: Biased Estimation for Nonorthogonal Problems.</em> <span style="color:var(--text-faint);">Technometrics, 12(1), 55–67.</span></div>
+        <div class="lit-note" data-i18n="lit_4_note">The original Ridge regression paper. Introduces L2 penalisation to handle multicollinearity in high-dimensional settings — the companion shrinkage method to Lasso and the basis for Elastic Net.</div>
+      </div>
+
+    </div>
+  </div>
+
 </div><!-- /page -->
 
 <script>
@@ -525,7 +571,7 @@ function buildPills() {
 
   // actual — always active by default
   [['actual', currentLang==='pt'?'IPCA Realizado':'Actual CPI'],
-   ['focus',  'Focus (Média)']].forEach(([k, label]) => {
+   ['focus',  currentLang==='pt'?'Previsão do Banco Central':"Central Bank's Forecast"]].forEach(([k, label]) => {
     const btn = document.createElement('button');
     const isActive = k === 'actual'; // focus off by default
     btn.className = 'pill' + (isActive ? ' active' : '');
@@ -578,7 +624,7 @@ function render() {
   }
   if (showFocus && td.focus?.length) {
     const d = byYear(td.focus, startYear);
-    traces.push({ x:d.map(r=>r.date), y:d.map(r=>r.media), name:'Focus (Média)',
+    traces.push({ x:d.map(r=>r.date), y:d.map(r=>r.media), name:"Central Bank's Forecast",
       type:'scatter', mode:'lines', line:{color:COLORS.focus,width:1.8,dash:'dot'},
       hovertemplate:'%{y:.3f}%<extra>Focus</extra>' });
   }
@@ -667,7 +713,7 @@ function renderMetricsTable() {
     const tr = document.createElement('tr');
     tr.className = 'row-focus';
     tr.innerHTML = `
-      <td><span class="td-name"><span class="td-dot" style="background:${COLORS.focus};"></span>Focus (${currentLang==='pt'?'Consenso':'Consensus'})</span></td>
+      <td><span class="td-name"><span class="td-dot" style="background:${COLORS.focus};"></span>${currentLang==='pt'?'Previsão do Banco Central':"Central Bank's Forecast"}</span></td>
       <td>${focusMet.mae.toFixed(4)}</td>
       <td>${focusMet.rmse.toFixed(4)}</td>
       <td>${focusMet.r2.toFixed(4)}</td>
@@ -778,6 +824,16 @@ const STRINGS = {
     tech_me4:'Best-correlation transformation per feature (diff, log, pct-change) selected on first training window only',
     tech_me5:'StandardScaler fitted inside each rolling window on training data only',
     other_models_note:'<strong>Other models tested:</strong> LSTM (Long Short-Term Memory), Ridge regression, CSR (Cross-Sectional Regression), and Random Forest were also evaluated during development. None produced results competitive with the regularised linear models presented here — likely due to the relatively short time series available, the high dimensionality of the feature space, and the structural instability of Brazilian macroeconomic data over the sample period. Their code remains available in the project notebooks.',
+    lit_eyebrow:'Literature',
+    lit_title:'Key References',
+    lit_1_title:'<em>Advances in Financial Machine Learning.</em> Wiley.',
+    lit_1_note:'The foundational reference for ML applied to financial and economic data. Covers backtesting methodology, feature engineering, and avoiding overfitting — all directly relevant to this project\'s walk-forward design.',
+    lit_2_title:'Real-time inflation forecasting with high-dimensional models: The case of Brazil.',
+    lit_2_note:'Introduces Complete Subset Regression (CSR) as a forecasting device for Brazilian inflation specifically — the CSR benchmark referenced in this project. The paper evaluates high-dimensional models on real-time IPCA data.',
+    lit_3_title:'Regression Shrinkage and Selection via the Lasso.',
+    lit_3_note:'The original Lasso paper. Proposes L1-penalised regression for simultaneous variable selection and coefficient shrinkage — the core regularisation method used in this project.',
+    lit_4_title:'Ridge Regression: Biased Estimation for Nonorthogonal Problems.',
+    lit_4_note:'The original Ridge regression paper. Introduces L2 penalisation to handle multicollinearity in high-dimensional settings — the companion shrinkage method to Lasso and the basis for Elastic Net.',
   },
   pt:{
     nav_home:'Início', nav_current:'Previsão de Inflação Brasileira', nav_back:'← Projetos',
@@ -811,7 +867,7 @@ const STRINGS = {
     lim_l3:'Heterogeneidade &amp; Transformações de Dados',
     lim_d3:'As 100+ séries brutas têm escalas, frequências e propriedades distribucionais distintas. Uma busca de transformação por feature normalizou a qualidade dos sinais, e o StandardScaler foi aplicado dentro de cada janela rolling.',
     hcard_loading_label:'Carregando…',
-    hcard_focus_name:'Focus (Consenso de Mercado)',
+    hcard_focus_name:'Previsão do Banco Central (Consenso de Mercado)',
     th_model:'Modelo', th_mae:'MAE', th_rmse:'RMSE', th_r2:'R²', th_obs:'Obs.',
     metrics_loading:'Carregando métricas…',
     chart_instruction:'Selecione o(s) modelo(s) que deseja comparar.',
@@ -833,6 +889,16 @@ const STRINGS = {
     tech_me4:'Melhor transformação por feature selecionada apenas na primeira janela de treino',
     tech_me5:'StandardScaler ajustado dentro de cada janela rolling somente nos dados de treino',
     other_models_note:'<strong>Outros modelos testados:</strong> LSTM (Long Short-Term Memory), regressão Ridge, CSR (Cross-Sectional Regression) e Random Forest também foram avaliados durante o desenvolvimento. Nenhum produziu resultados competitivos com os modelos lineares regularizados aqui apresentados — provavelmente devido à série temporal relativamente curta, à alta dimensionalidade do espaço de features e à instabilidade estrutural dos dados macroeconômicos brasileiros no período amostral. O código permanece disponível nos notebooks do projeto.',
+    lit_eyebrow:'Literatura',
+    lit_title:'Referências Principais',
+    lit_1_title:'<em>Advances in Financial Machine Learning.</em> Wiley.',
+    lit_1_note:'A referência fundamental para ML aplicado a dados financeiros e econômicos. Cobre metodologia de backtesting, engenharia de features e como evitar overfitting — tudo diretamente relevante para o design walk-forward deste projeto.',
+    lit_2_title:'Real-time inflation forecasting with high-dimensional models: The case of Brazil.',
+    lit_2_note:'Introduz a Regressão de Subconjunto Completo (CSR) como método de previsão para a inflação brasileira especificamente — o benchmark CSR referenciado neste projeto. O artigo avalia modelos de alta dimensionalidade em dados do IPCA em tempo real.',
+    lit_3_title:'Regression Shrinkage and Selection via the Lasso.',
+    lit_3_note:'O artigo original do Lasso. Propõe regressão com penalização L1 para seleção simultânea de variáveis e encolhimento de coeficientes — o principal método de regularização utilizado neste projeto.',
+    lit_4_title:'Ridge Regression: Biased Estimation for Nonorthogonal Problems.',
+    lit_4_note:'O artigo original da regressão Ridge. Introduz a penalização L2 para lidar com multicolinearidade em configurações de alta dimensionalidade — o método de encolhimento complementar ao Lasso e a base para o Elastic Net.',
   }
 };
 

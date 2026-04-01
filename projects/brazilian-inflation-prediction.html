@@ -7,6 +7,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -22,7 +24,7 @@
   --a2: #ff6b6b;
   --a3: #6eb5ff;
   --mono: 'DM Mono', monospace;
-  --sans: 'Syne', sans-serif;
+  --sans: 'Space Grotesk', sans-serif;
   --radius: 12px;
   --tr: 0.22s ease;
 }
@@ -571,7 +573,7 @@ function buildPills() {
 
   // actual — always active by default
   [['actual', currentLang==='pt'?'IPCA Realizado':'Actual CPI'],
-   ['focus',  currentLang==='pt'?'Previsão do Banco Central':"Central Bank's Forecast"]].forEach(([k, label]) => {
+   ['focus',  currentLang==='pt'?'Focus (Média)':"Central Bank's Forecast"]].forEach(([k, label]) => {
     const btn = document.createElement('button');
     const isActive = k === 'actual'; // focus off by default
     btn.className = 'pill' + (isActive ? ' active' : '');
@@ -713,7 +715,7 @@ function renderMetricsTable() {
     const tr = document.createElement('tr');
     tr.className = 'row-focus';
     tr.innerHTML = `
-      <td><span class="td-name"><span class="td-dot" style="background:${COLORS.focus};"></span>${currentLang==='pt'?'Previsão do Banco Central':"Central Bank's Forecast"}</span></td>
+      <td><span class="td-name"><span class="td-dot" style="background:${COLORS.focus};"></span>${currentLang==='pt'?'Focus (Média)':"Central Bank's Forecast"}</span></td>
       <td>${focusMet.mae.toFixed(4)}</td>
       <td>${focusMet.rmse.toFixed(4)}</td>
       <td>${focusMet.r2.toFixed(4)}</td>
@@ -852,22 +854,22 @@ const STRINGS = {
     overview_a1:'Quatro modelos lineares regularizados são treinados em mais de 100 séries mensais do BCB e do IBGE — cobrindo componentes de inflação, agregados monetários, crédito, balanços fiscais, comércio exterior e indicadores de atividade.',
     overview_a2:'Cada modelo é avaliado por meio de um rigoroso backtest walk-forward: o modelo é treinado apenas com dados disponíveis no momento da previsão. O desempenho é medido pelo Erro Médio Absoluto (MAE) em relação ao IPCA realizado.',
     results_main_title:'Principais Resultados',
-    res_r1:'<strong>Os melhores modelos superaram o benchmark de mercado para inflação</strong>, com maior poder preditivo (R²) e menor erro (MAE).',
-    res_r2:'<strong>Os modelos mostraram maior vantagem durante choques inflacionários</strong> — como a alta de commodities pós-COVID e os picos de preços de energia e alimentos em 2022 — quando o conjunto amplo de indicadores capturou mudanças de regime mais rapidamente do que as expectativas da pesquisa conseguiram se ajustar.',
-    res_r3:'<strong>Diferentes pesos foram essenciais para a seleção de variáveis</strong>, com dinâmica cambial, agregados monetários e componentes defasados de inflação conduzindo consistentemente as previsões.',
-    res_r4:'<strong>Modelos lineares superaram alternativas não-lineares</strong> (LSTM, Random Forest) na previsão de inflação — consistente com a literatura econométrica.',
+    res_r1:'<strong>Os melhores modelos superaram o Boletim Focus</strong>, com maior poder preditivo (R²) e menor erro (MAE).',
+    res_r2:'<strong>Modelos mostraram maior vantagem durante choques inflacionários.</strong> Infere-se que modelos de ML são mais eficientes para identificar mudanças de regime do que as expectativas de analistas.',
+    res_r3:'<strong>Diferentes pesos foram essenciais para feature selection</strong>, com dinâmica cambial, agregados monetários e componentes defasados de inflação conduzindo as previsões.',
+    res_r4:'<strong>Modelos lineares superaram modelos não-lineares (LSTM, Random Forest) na previsão de inflação</strong> — consistente com a literatura econométrica.',
     future_steps_label:'Próximos Passos',
     future_s1:'Incorporar análise de sentimento de notícias para melhorar a detecção de choques inflacionários antes que apareçam nos dados duros',
     future_s2:'Usar dados de mercado (taxas de swap, futuros de commodities) para prever mudanças de regime no processo inflacionário',
     results_lim_title:'Limitações &amp; Como Foram Tratadas',
-    lim_l1:'Viés de look-ahead e forward-looking',
-    lim_d1:'Um rigoroso backtest walk-forward foi implementado: os modelos são retreinados a cada etapa apenas com dados do passado, e as transformações de features são selecionadas somente na primeira janela de treino.',
-    lim_l2:'Defasagens de publicação',
-    lim_d2:'As séries do IBGE (PMC, PIMPF) são divulgadas com atraso de 1 a 2 meses. Cada variável recebeu uma defasagem estruturada para refletir sua disponibilidade real no momento da previsão.',
-    lim_l3:'Heterogeneidade &amp; Transformações de Dados',
-    lim_d3:'As 100+ séries brutas têm escalas, frequências e propriedades distribucionais distintas. Uma busca de transformação por feature normalizou a qualidade dos sinais, e o StandardScaler foi aplicado dentro de cada janela rolling.',
+    lim_l1:'Look-ahead e forward-looking bias',
+    lim_d1:'Um backtest walk-forward rigoroso foi implementado: modelos são retreinados a cada etapa apenas com dados do passado, e as transformações de features são selecionadas somente na primeira janela de treino.',
+    lim_l2:'Heterogeneidade &amp; Transformações de Dados',
+    lim_d2:'As séries (brutas) possuem escalas e frequências distintas. Foi realizado um processo de seleção de transformações por feature, onde escolhi aquela que produzia o sinal mais informativo. Essa etapa não busca uniformizar as séries, mas extrair representações mais informativas de cada uma.',
+    lim_l3:'Defasagens nas publicações',
+    lim_d3:'As séries do IBGE (PMC, PIMPF) são divulgadas com atraso de 1 a 2 meses. Cada variável recebeu uma defasagem estrutural para refletir sua disponibilidade real no momento da previsão.',
     hcard_loading_label:'Carregando…',
-    hcard_focus_name:'Previsão do Banco Central (Consenso de Mercado)',
+    hcard_focus_name:'Focus (Média)',
     th_model:'Modelo', th_mae:'MAE', th_rmse:'RMSE', th_r2:'R²', th_obs:'Obs.',
     metrics_loading:'Carregando métricas…',
     chart_instruction:'Selecione o(s) modelo(s) que deseja comparar.',

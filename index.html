@@ -307,7 +307,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <p class="hero__bio" data-i18n="hero_bio">Business Analytics Bachelor's student at the <strong>University of Amsterdam</strong>, specializing in <strong>finance</strong> and <strong>financial markets' data</strong>. I build algorithms to identify edges in financial markets and machine learning models that translate complex economic signals into actionable insights.</p>
         <div class="hero__cta">
           <a href="#projects" class="btn btn--primary" data-i18n="hero_cta1">View Projects</a>
-          <a href="https://github.com/darosnakai" target="_blank" rel="noopener" class="btn btn--ghost" data-i18n="hero_cta2">GitHub Profile</a>
+          <a href="https://github.com/darosnakai" target="_blank" rel="noopener" class="btn btn--ghost" data-i18n="hero_cta2">GitHub</a>
           <a href="https://www.linkedin.com/in/darosnakai/" target="_blank" rel="noopener" class="btn btn--linkedin" data-i18n="hero_cta3">LinkedIn</a>
         </div>
       </div>
@@ -414,19 +414,20 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
       <div>
         <div class="about-block__title" data-i18n="about_interests">Interests</div>
         <ul class="about-list">
-          <li data-i18n="about_i1">Machine learning applied to macroeconomic forecasting and financial markets</li>
-          <li data-i18n="about_i2">Algorithm development to identify systematic edges in financial markets</li>
-          <li data-i18n="about_i3">Brazilian economy: inflation dynamics, monetary policy, credit and fiscal indicators</li>
-          <li data-i18n="about_i4">Quantitative research bridging econometrics and modern ML techniques</li>
+          <li data-i18n="about_i1">Systematic asset pricing and factor-based investment strategies</li>
+          <li data-i18n="about_i2">Machine learning applied to macroeconomic forecasting and financial markets</li>
+          <li data-i18n="about_i3">Identification of persistent market inefficiencies and behavioral anomalies</li>
+          <li data-i18n="about_i4">Building data-driven systems for decision-making in finance</li>
         </ul>
       </div>
       <div>
         <div class="about-block__title" data-i18n="about_tools">Tools &amp; Stack</div>
         <ul class="about-list">
-          <li>Python — scikit-learn, pandas, NumPy, Plotly</li>
-          <li data-i18n="about_t2">Data sources — Central Bank`s API, EODHD API, Yahoo Finance</li>
-          <li data-i18n="about_t3">Regularised regression — Lasso, Elastic Net, ASGL adaptive variants</li>
-          <li data-i18n="about_t4">Walk-forward backtesting with TimeSeriesSplit cross-validation</li>
+          <li data-i18n="about_t1">Python — pandas, NumPy, scikit-learn, Plotly</li>
+          <li data-i18n="about_t2">Data pipelines — Central Bank and Government APIs, EODHD, Yahoo Finance</li>
+          <li data-i18n="about_t3">ML — OLS, Ridge, Lasso, Elastic Net, LSTM, Random Forest, CSR</li>
+          <li data-i18n="about_t4">Factor modeling — value, risk premia, and systematic portfolio construction</li>
+          <li data-i18n="about_t5">Backtesting — walk-forward validation and cross-sectional portfolio construction</li>
         </ul>
       </div>
     </div>
@@ -467,9 +468,9 @@ const STRINGS = {
     hero_eyebrow:'Financial Analysis · Data Science',
     hero_role_accent:'Financial Analyst', hero_role_rest:'Data Scientist',
     hero_bio:`Business Analytics Bachelor's student at the <strong>University of Amsterdam</strong>, specializing in <strong>finance</strong> and <strong>financial markets' data</strong>. I build algorithms to identify edges in financial markets and machine learning models that translate complex economic signals into actionable insights.`,
-    hero_cta1:'View Projects', hero_cta2:'GitHub Profile', hero_cta3:'LinkedIn',
+    hero_cta1:'View Projects', hero_cta2:'GitHub', hero_cta3:'LinkedIn',
     photo_placeholder:'Your Photo',
-    strip_v1:'BSc Analytics (Honours)', strip_l1:'Degree',
+    strip_v1:'BSc Business Analytics (Honours)', strip_l1:'Degree',
     strip_v2:'University of Amsterdam',  strip_l2:'Education',
     strip_v3:'Finance &amp; Economics',  strip_l3:'Specialization',
     strip_v4:'Founder — Finalytics Capital', strip_l4:'Student Investment Fund',
@@ -486,45 +487,49 @@ const STRINGS = {
     card2_title:'Equity Risk Analytics Dashboard (CAPM-Based)', card2_desc:'Live, browser-based interactive risk-analysis tool, using the CAPM framework. Select any S&amp;P 500 stocks, compute beta and expected returns, and visualise the Security Market Line — powered by real Yahoo Finance and EODHD data',
     about_eyebrow:'Background', about_title:'About Me',
     about_interests:'Interests', about_tools:'Tools &amp; Stack',
-    about_i1:'Machine learning applied to macroeconomic forecasting and financial markets',
-    about_i2:'Algorithm development to identify systematic edges in financial markets',
-    about_i3:'Brazilian economy: inflation dynamics, monetary policy, credit and fiscal indicators',
-    about_i4:'Quantitative research bridging econometrics and modern ML techniques',
-    about_t2:'Data sources — Central Bank`s API, EODHD API, Yahoo Finance',
-    about_t3:'Regularised regression — Lasso, Elastic Net, ASGL adaptive variants',
-    about_t4:'Walk-forward backtesting with TimeSeriesSplit cross-validation',
+    about_t1:'Python — pandas, NumPy, scikit-learn, Plotly',
+    about_i1:'Systematic asset pricing and factor-based investment strategies',
+    about_i2:'Machine learning applied to macroeconomic forecasting and financial markets',
+    about_i3:'Identification of persistent market inefficiencies and behavioral anomalies',
+    about_i4:'Building data-driven systems for decision-making in finance',
+    about_t2:'Data pipelines — Central Bank and Government APIs, EODHD, Yahoo Finance',
+    about_t3:'ML — OLS, Ridge, Lasso, Elastic Net, LSTM, Random Forest, CSR',
+    about_t4:'Factor modeling — value, risk premia, and systematic portfolio construction',
+    about_t5:'Backtesting — walk-forward validation and cross-sectional portfolio construction',
   },
   pt: {
     nav_projects:'Projetos', nav_about:'Sobre',
     hero_eyebrow:'Análise Financeira · Ciência de Dados',
     hero_role_accent:'Analista Financeiro', hero_role_rest:'Cientista de Dados',
-    hero_bio:`Estudante de Bacharelado em Business Analytics na <strong>Universidade de Amsterdã</strong>, com especialização em <strong>finanças</strong> e <strong>dados de mercados financeiros</strong>. Construo algoritmos para identificar vantagens nos mercados financeiros e modelos de machine learning que traduzem sinais econômicos complexos em insights acionáveis.`,
-    hero_cta1:'Ver Projetos', hero_cta2:'Perfil GitHub', hero_cta3:'LinkedIn',
+    hero_bio:`Estudante de Bacharelado em Business Analytics na <strong>Universidade de Amsterdã</strong>, com especialização em finanças e dados de mercados financeiros. Construo algoritmos para identificar edges no mercado e modelos de machine learning que traduzem sinais econômicos complexos em insights.`,
+    hero_cta1:'Ver Projetos', hero_cta2:'GitHub', hero_cta3:'LinkedIn',
     photo_placeholder:'Sua Foto',
-    strip_v1:'BSc Analytics (Honours)',  strip_l1:'Graduação',
+    strip_v1:'BSc Business Analytics (Honours)',  strip_l1:'Graduação',
     strip_v2:'Universidade de Amsterdã', strip_l2:'Educação',
     strip_v3:'Finanças &amp; Economia',  strip_l3:'Especialização',
     strip_v4:'Fundador — Finalytics Capital', strip_l4:'Fundo de Investimento',
     strip_v5:'Trabalho em Equipe &amp; Comunicação', strip_l5:'Soft Skills',
     scroll_label:'rolar',
     projects_eyebrow:'Trabalhos Selecionados', projects_title:'Projetos',
-    projects_sub:'Projetos de pesquisa quantitativa e machine learning com foco em mercados financeiros e previsão macroeconômica.',
+    projects_sub:'Projetos de análise financeira e pesquisa quantitativa com foco em mercados financeiros e economia.',
     card1_tag1:'Machine Learning', card1_tag2:'Macroeconomia',
     card1_tag3:'Séries Temporais',  card1_tag4:'Projeto Interativo',
     card1_title:'Prevendo Inflação com Machine Learning',
     card1_desc:'Modelos de ML regularizados conseguem superar os analistas do Banco Central na previsão da inflação? Modelos treinados em mais de 100 indicadores macroeconômicos, comparados ao consenso oficial de mercado.',
     soon_badge:'Em Breve', card2_tag:'Finanças Quantitativas',
     card2_tag1:'Ferramenta Interativa', card2_tag2:'Ações', card2_tag3:'Análise de Risco',
-    card2_title:'Painel de Risco de Ações (Baseado no CAPM)', card2_desc:'Ferramenta interativa de análise de risco, disponível diretamente no navegador, usando o modelo CAPM. Selecione ações do S&amp;P 500, calcule o beta e os retornos esperados, e visualize a Linha do Mercado de Títulos — com dados reais do Yahoo Finance e da EODHD.',
+    card2_title:'Plataforma de Análise de Risco e Retorno (CAPM)', card2_desc:'Ferramenta interativa de análise de risco, disponível diretamente no navegador, usando o modelo CAPM. Selecione ações do S&amp;P 500, calcule o beta e os retornos esperados, e visualize a Linha do Mercado de Títulos — com dados reais do Yahoo Finance e da EODHD.',
     about_eyebrow:'Formação', about_title:'Sobre Mim',
     about_interests:'Interesses', about_tools:'Ferramentas &amp; Stack',
-    about_i1:'Machine learning aplicado à previsão macroeconômica e mercados financeiros',
-    about_i2:'Desenvolvimento de algoritmos para identificar vantagens sistemáticas nos mercados financeiros',
-    about_i3:'Economia brasileira: dinâmica da inflação, política monetária, indicadores de crédito e fiscais',
-    about_i4:'Pesquisa quantitativa unindo econometria e técnicas modernas de ML',
-    about_t2:'Fontes de dados — API SGS do BCB, SIDRA do IBGE, Focus / Boletim Focus',
-    about_t3:'Regressão regularizada — Lasso, Elastic Net, variantes adaptativas ASGL',
+    about_t1:'Python — scikit-learn, pandas, NumPy, Plotly, matplotlib',
+    about_i1:'Precificação de ativos e estratégias de investimento baseadas em fatores',
+    about_i2:'Aplicação de machine learning ao mercado financeiro e modelagem macroeconômica',
+    about_i3:'Análise quantitativa para identificar ineficiências nos mercados',
+    about_i4:'Desenvolvimento de sistemas para suporte à tomada de decisão em finanças',
+    about_t2:'Fontes de dados — API do Banco Central, IBGE, Yahoo Finance e EODHD',
+    about_t3:'ML — OLS, Ridge, Lasso, Elastic Net, LSTM, Random Forest, CSR',
     about_t4:'Backtesting walk-forward com validação cruzada TimeSeriesSplit',
+    about_t5:'Backtesting walk-forward com validação cruzada TimeSeriesSplit',
   }
 };
 

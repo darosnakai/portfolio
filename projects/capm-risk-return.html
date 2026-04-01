@@ -7,6 +7,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
 <style>
 :root {
@@ -24,7 +26,7 @@
   --a4: #c97bff;
   --a5: #ffb347;
   --mono: 'DM Mono', monospace;
-  --sans: 'Syne', sans-serif;
+  --sans: 'Space Grotesk', sans-serif;
   --radius: 12px;
   --tr: 0.22s ease;
 }
@@ -1128,8 +1130,14 @@ function renderResults(results, mktMeanPct, rfPct){
 
   /* ── ② Table ── */
   const sorted=[...valid].sort((a,b)=>b.beta-a.beta);
+  const ispt = document.documentElement.lang === 'pt-BR';
+  const clsLabel = (beta) => {
+    if (beta > 1.2) return ispt ? 'Agressivo' : 'Aggressive';
+    if (beta < 0.8) return ispt ? 'Defensivo' : 'Defensive';
+    return ispt ? 'Neutro' : 'Neutral';
+  };
   document.getElementById('results-tbody').innerHTML=sorted.map(r=>{
-    const cls=r.beta>1.2?'Aggressive':r.beta<0.8?'Defensive':'Neutral';
+    const cls=clsLabel(r.beta);
     const badge=r.beta>1.2?'badge--hi-risk':r.beta<0.8?'badge--lo':'badge--hi';
     const fmt=(v,d,suf='%')=>v!==null?v.toFixed(d)+suf:'—';
     return `<tr>
@@ -1443,7 +1451,7 @@ const CAPM_STRINGS = {
     header_meta_left:'Finanças Quantitativas · Análise de Risco',
     header_meta_right:'Ferramenta Interativa — Dados ao Vivo',
     header_eyebrow:'CAPM · Beta · Risco-Retorno · Análise de Ações',
-    header_title:'Painel Interativo de Risco de Ações<br>(Baseado no CAPM)',
+    header_title:'Plataforma Interativa de Análise de Risco e Retorno (CAPM)',
     header_abstract:'Selecione ações do S&amp;P 500, escolha o período de análise e calcule o beta, o alfa de Jensen, os índices de Sharpe e Treynor de cada ação — em tempo real, no navegador. Dados do Yahoo Finance e da API EODHD.',
     div_model:'01 — O Modelo',
     overview_title:'Modelo de Precificação de Ativos de Capital',

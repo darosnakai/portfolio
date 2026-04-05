@@ -182,6 +182,7 @@ nav {
 .timeline-content {
   opacity:0; transform:translateY(14px);
   transition:opacity .5s ease, transform .5s ease;
+  position:relative; z-index:1;
 }
 .timeline-item.tl-visible .timeline-content { opacity:1; transform:translateY(0); }
 .timeline-institution { font-size:19px; font-weight:700; letter-spacing:-.01em; margin-bottom:3px; color:var(--text); }
@@ -194,6 +195,52 @@ nav {
 .timeline-tag--blue   { border-color:color-mix(in srgb,var(--a3) 45%,transparent); color:var(--a3);  background:color-mix(in srgb,var(--a3) 10%,var(--bg3)); }
 .timeline-tag--violet { border-color:color-mix(in srgb,var(--a4) 45%,transparent); color:var(--a4);  background:color-mix(in srgb,var(--a4) 10%,var(--bg3)); }
 .timeline-tag--green  { border-color:color-mix(in srgb,var(--a1) 45%,transparent); color:var(--a1);  background:color-mix(in srgb,var(--a1) 10%,var(--bg3)); }
+
+/* TIMELINE TOOLTIP */
+.tl-tooltip-wrap { position:relative; }
+.tl-tooltip {
+  display:none;
+  position:absolute;
+  left:0; top:calc(100% + 12px);
+  z-index:9999;
+  width:500px;
+  background:#10101a;
+  border:1px solid var(--border-hi);
+  border-radius:12px;
+  padding:16px 18px;
+  pointer-events:none;
+  isolation:isolate;
+}
+.tl-tooltip::before {
+  content:'';
+  position:absolute;
+  top:-6px; left:20px;
+  width:10px; height:10px;
+  background:var(--bg2);
+  border-left:1px solid var(--border-hi);
+  border-top:1px solid var(--border-hi);
+  transform:rotate(45deg);
+}
+.tl-tooltip-tag {
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  padding:3px 10px;
+  border-radius:99px;
+  margin-bottom:10px;
+}
+.tl-tooltip-text {
+  font-family:var(--mono);
+  font-size:12px;
+  line-height:1.75;
+  color:var(--text-dim);
+}
+.tl-tooltip-wrap:hover .tl-tooltip { display:block; }
+.timeline-dot { cursor:default; transition:transform .15s ease; }
+.tl-tooltip-wrap:hover .timeline-dot { transform:scale(1.4); }
+.tl-tooltip-wrap:hover { z-index:9998; }
 
 /* ABOUT */
 .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:40px; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:36px 40px; margin-top:48px; }
@@ -316,6 +363,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
             <span class="card__tech-item">Python</span>
             <span class="card__tech-item">EODHD API</span>
             <span class="card__tech-item">HDF5</span>
+            <span class="card__tech-item">Backtesting</span>
           </div>
           <span class="card__arrow">↗</span>
         </div>
@@ -396,7 +444,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <div class="timeline-dot-col">
           <div class="timeline-dot" style="background:var(--a5);box-shadow:0 0 0 4px rgba(255,179,71,0.12);"></div>
         </div>
-        <div class="timeline-content">
+        <div class="timeline-content tl-tooltip-wrap">
           <div class="timeline-institution" data-i18n="edu1_inst">School of the Nations</div>
           <div class="timeline-degree"      data-i18n="edu1_degree">High School — Valedictorian</div>
           <div class="timeline-dates">Brasília, Brazil · Jun 2021</div>
@@ -404,6 +452,10 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
           <div class="timeline-tags">
             <span class="timeline-tag timeline-tag--amber">9.2 / 10 GPA</span>
             <span class="timeline-tag timeline-tag--amber">Valedictorian</span>
+          </div>
+          <div class="tl-tooltip">
+            <span class="tl-tooltip-tag" style="background:color-mix(in srgb,var(--a5) 12%,transparent);color:var(--a5);">The starting point</span>
+            <div class="tl-tooltip-text">Studying abroad was always the goal — I wanted to be the first in my family to study outside Brazil. Europe stood out for its multiculturalism and history. Germany appealed to me as a real challenge — a completely different language, a very different culture, and a rich history I found fascinating.</div>
           </div>
         </div>
       </div>
@@ -414,7 +466,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <div class="timeline-dot-col">
           <div class="timeline-dot" style="background:var(--a3);box-shadow:0 0 0 4px rgba(110,181,255,0.12);"></div>
         </div>
-        <div class="timeline-content">
+        <div class="timeline-content tl-tooltip-wrap">
           <div class="timeline-institution" data-i18n="edu2_inst">UE Germany (Graduated)</div>
           <div class="timeline-degree"      data-i18n="edu2_degree">Bachelor's in Software Engineering</div>
           <div class="timeline-dates"       data-i18n="edu2_dates">Potsdam, Germany · Mar 2022 – Apr 2025</div>
@@ -422,6 +474,10 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
           <div class="timeline-tags">
             <span class="timeline-tag timeline-tag--blue">8.2 / 10 GPA</span>
             <span class="timeline-tag timeline-tag--blue">Graduated</span>
+          </div>
+          <div class="tl-tooltip">
+            <span class="tl-tooltip-tag" style="background:color-mix(in srgb,var(--a3) 12%,transparent);color:var(--a3);">Why Germany?</span>
+            <div class="tl-tooltip-text"> Software Engineering felt like the right entry point, but I quickly realised I had little interest in frontend work or building apps. What I actually loved was analysing data and extracting meaningful insights. I had already decided to change courses, but a merit-based scholarship for an exchange semester in Sydney made me pause the plan. </div>
           </div>
         </div>
       </div>
@@ -432,14 +488,18 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <div class="timeline-dot-col">
           <div class="timeline-dot" style="background:var(--a4);box-shadow:0 0 0 4px rgba(201,123,255,0.12);"></div>
         </div>
-        <div class="timeline-content">
+        <div class="timeline-content tl-tooltip-wrap">
           <div class="timeline-institution" data-i18n="edu3_inst">University of Technology Sydney (UTS)</div>
           <div class="timeline-degree"      data-i18n="edu3_degree">International Exchange Programme</div>
           <div class="timeline-dates"       data-i18n="edu3_dates">Sydney, Australia · 2023</div>
-          <div class="timeline-desc"        data-i18n="edu3_desc">International exchange year, gaining exposure to a different academic culture and expanding cross-cultural perspective — one of four countries lived in across three continents.</div>
+          <div class="timeline-desc"        data-i18n="edu3_desc">International exchange semester, gaining exposure to a new academic environment while developing a strong cross-cultural perspective. Pursued finance and economics courses that solidified my decision to build a career in the financial field.</div>
           <div class="timeline-tags">
             <span class="timeline-tag timeline-tag--violet" data-i18n="edu3_tag1">Semester Exchange</span>
             <span class="timeline-tag timeline-tag--violet" data-i18n="edu3_tag2">Awarded Exchange Scholarship</span>
+          </div>
+          <div class="tl-tooltip">
+            <span class="tl-tooltip-tag" style="background:color-mix(in srgb,var(--a4) 12%,transparent);color:var(--a4);">The turning point</span>
+            <div class="tl-tooltip-text">I took finance and economics courses at UTS, and I was sure finance and data was the right direction. More than the academics, the people I met during that period shifted my perspective on career and life in ways I didn't expect. I left Australia certain of the pivot.</div>
           </div>
         </div>
       </div>
@@ -450,14 +510,18 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <div class="timeline-dot-col">
           <div class="timeline-dot" style="background:var(--a1);box-shadow:0 0 0 4px rgba(92,240,176,0.18);"></div>
         </div>
-        <div class="timeline-content">
+        <div class="timeline-content tl-tooltip-wrap">
           <div class="timeline-institution" data-i18n="edu4_inst">University of Amsterdam (In Progress)</div>
           <div class="timeline-degree"      data-i18n="edu4_degree">BSc Business Analytics (Honours)</div>
           <div class="timeline-dates"       data-i18n="edu4_dates">Amsterdam, Netherlands · Sep 2024 – Jul 2027</div>
-          <div class="timeline-desc"        data-i18n="edu4_desc">Currently in the Honours Programme, combining Business Analytics with a Mathematics minor. Relevant coursework: Finance I-II, Macroeconomics, Machine Learning, Econometrics, Probability &amp; Statistics I-II, Time Series Analysis, Linear Algebra.</div>
+          <div class="timeline-desc"        data-i18n="edu4_desc">Currently in the Honours Programme. Relevant coursework: Finance I-II, Macroeconomics, Machine Learning, Econometrics, Probability &amp; Statistics I-II, Time Series Analysis, Linear Algebra.</div>
           <div class="timeline-tags">
-            <span class="timeline-tag timeline-tag--green">7.7 / 10 GPA</span>
+            <span class="timeline-tag timeline-tag--green">7.8 / 10 GPA</span>
             <span class="timeline-tag timeline-tag--green">Honours Programme</span>
+          </div>
+          <div class="tl-tooltip">
+            <span class="tl-tooltip-tag" style="background:color-mix(in srgb,var(--a1) 12%,transparent);color:var(--a1);">The deliberate choice</span>
+            <div class="tl-tooltip-text">Business Analytics sits at exactly the intersection I was looking for — finance and data. UvA's academic rigour and its position as one of the world's leading research universities made the choice easy. The Honours Programme felt completely natural to me: I've always been drawn to studying topics outside my immediate field.</div>
           </div>
         </div>
       </div>

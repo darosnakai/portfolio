@@ -236,11 +236,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     <div class="section-divider__line"></div>
   </div>
   <div class="kpi-strip reveal" id="kpi-strip">
-    <div class="kpi-item"><div class="kpi-val" id="kpi-ret">—</div><div class="kpi-label">Ann. Return</div><div class="kpi-sub">Equal-weight combo</div></div>
+    <div class="kpi-item"><div class="kpi-val" id="kpi-ret">—</div><div class="kpi-label">Ann. Return</div><div class="kpi-sub">Equal-weighted</div></div>
     <div class="kpi-item"><div class="kpi-val" id="kpi-sharpe">—</div><div class="kpi-label">Sharpe Ratio</div><div class="kpi-sub">Annualised</div></div>
     <div class="kpi-item"><div class="kpi-val neg" id="kpi-dd">—</div><div class="kpi-label">Max Drawdown</div><div class="kpi-sub">Peak to trough</div></div>
     <div class="kpi-item"><div class="kpi-val" id="kpi-vol">—</div><div class="kpi-label">Ann. Volatility</div><div class="kpi-sub">Monthly std × √12</div></div>
-    <div class="kpi-item"><div class="kpi-val" id="kpi-period">—</div><div class="kpi-label">Sample Period</div><div class="kpi-sub">Common window</div></div>
+    <div class="kpi-item"><div class="kpi-val" id="kpi-period">—</div><div class="kpi-label">Sample Period</div><div class="kpi-sub">Common window of 20y</div></div>
   </div>
 
   <!-- CUMULATIVE RETURNS -->
@@ -771,7 +771,7 @@ function buildKPIs() {
   document.getElementById('kpi-sharpe').textContent = fmt(sharpe(multiRets), false);
   document.getElementById('kpi-dd').textContent     = fmt(maxDD(multiRets));
   document.getElementById('kpi-vol').textContent    = fmt(annVol(multiRets));
-  document.getElementById('kpi-period').textContent = `${labels[0]} – ${labels[labels.length-1]}`;
+  document.getElementById('kpi-period').textContent = `Jan/06–Dec/25`;
 }
 
 function buildFactorKPIs() {

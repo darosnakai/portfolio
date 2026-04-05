@@ -31,7 +31,7 @@
 }
 *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 html { scroll-behavior:smooth; }
-body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; overflow-x:hidden; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height: 100vh; overflow-x:hidden; }
 body::before {
   content:''; position:fixed; inset:0;
   background-image: linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),
@@ -70,7 +70,7 @@ nav {
 .hero__layout {
   display:grid; grid-template-columns:1fr auto;
   gap:56px; align-items:center;
-  padding:100px 0 32px; width:100%; min-height:calc(100vh - 60px);
+  padding:100px 0 5px; width:100%;
 }
 .hero__text { display:flex; flex-direction:column; justify-content:center; }
 .hero__eyebrow {
@@ -117,11 +117,11 @@ nav {
 
 /* STRIP */
 .strip-outer { position:relative; z-index:1; }
-.strip { display:grid; grid-template-columns:repeat(6,1fr); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
-.strip-item { padding:20px 16px; border-right:1px solid var(--border); background:var(--bg2); }
+.strip { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+.strip-item { padding:24px 22px; border-right:1px solid var(--border); background:var(--bg2); }
 .strip-item:last-child { border-right:none; }
-.strip-val { font-size:clamp(10px,1.05vw,14px); font-weight:800; letter-spacing:-.01em; color:var(--a1); line-height:1.25; margin-bottom:6px; }
-.strip-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); }
+.strip-val { font-size:clamp(12px,1.3vw,17px); font-weight:800; letter-spacing:-.01em; color:var(--a1); line-height:1.25; margin-bottom:6px; }
+.strip-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-dim); }
 
 /* SECTIONS */
 .section { padding:100px 0 0; }
@@ -229,10 +229,10 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
 
 /* RESPONSIVE */
 @media(max-width:1000px) {
-  .hero__layout { grid-template-columns:1fr; padding:80px 0 56px; min-height:unset; }
+  .hero__layout { grid-template-columns:1fr; padding:80px 0 40px; }
   .hero__photo { justify-content:center; }
   .hero__photo-frame { width:260px; height:320px; }
-  .strip { grid-template-columns:repeat(3,1fr); }
+  .strip { grid-template-columns:repeat(2,1fr); }
   .timeline::before { left:64px; }
   .timeline-item { grid-template-columns:64px 28px 1fr; }
   .skills-outer { grid-template-columns:1fr; }
@@ -285,7 +285,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         <div class="hero__cta">
           <a href="https://github.com/darosnakai" target="_blank" rel="noopener" class="btn btn--ghost" data-i18n="hero_cta2">GitHub</a>
           <a href="https://www.linkedin.com/in/darosnakai/" target="_blank" rel="noopener" class="btn btn--linkedin" data-i18n="hero_cta3">LinkedIn</a>
-          <a href="https://raw.githubusercontent.com/darosnakai/darosnakai.github.io/main/cv-en.pdf" target="_blank" rel="noopener" class="btn btn--cv" id="cv-btn" data-i18n="hero_cta4">CV</a>
+          <a href="https://raw.githubusercontent.com/darosnakai/portfolio/main/cv-en.pdf" target="_blank" rel="noopener" class="btn btn--cv" id="cv-btn" data-i18n="hero_cta4">CV</a>
         </div>
       </div>
       <div class="hero__photo">
@@ -302,24 +302,6 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
     <h2 class="section__title" data-i18n="projects_title">Projects</h2>
     <p class="section__subtitle" data-i18n="projects_sub">Quantitative research and machine learning projects focused on financial markets and macroeconomic forecasting.</p>
     <div class="projects-grid">
-      <!-- Project 3 — Factor Investing -->
-      <a href="projects/factor-investing.html" class="project-card" style="--card-accent:#c97bff;">
-        <div class="card__tag-row">
-          <span class="card__tag card__tag--violet" data-i18n="card3_tag1">Factor Investing</span>
-          <span class="card__tag card__tag--green"  data-i18n="card3_tag2">Backtesting</span>
-          <span class="card__tag card__tag--blue"   data-i18n="card3_tag3">Portfolio Creation &amp; Evaluation</span>
-        </div>
-        <h3 class="card__title" data-i18n="card3_title">Equity Factor Investing Strategy</h3>
-        <p class="card__desc"  data-i18n="card3_desc">A long-short factor strategy built on Value, Momentum and Quality risk premia — constructed from scratch on the S&amp;P 500 with MSCI-aligned scoring, sector-neutral z-scores, and beta-neutral (BAB) portfolio construction, backtested from 2005 to 2026.</p>
-        <div class="card__footer">
-          <div class="card__tech">
-            <span class="card__tech-item">Python</span>
-            <span class="card__tech-item">EODHD API</span>
-            <span class="card__tech-item">HDF5</span>
-          </div>
-          <span class="card__arrow">↗</span>
-        </div>
-      </a>
 
       <a href="projects/brazilian-inflation-prediction.html" class="project-card" style="--card-accent:#5cf0b0;">
         <div class="card__tag-row">
@@ -357,6 +339,25 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         </div>
       </a>
 
+      <!-- Project 3 — Factor Investing -->
+      <a href="projects/factor-investing.html" class="project-card" style="--card-accent:#c97bff;">
+        <div class="card__tag-row">
+          <span class="card__tag card__tag--violet" data-i18n="card3_tag1">Factor Investing</span>
+          <span class="card__tag card__tag--green"  data-i18n="card3_tag2">Long-Short</span>
+          <span class="card__tag card__tag--blue"   data-i18n="card3_tag3">Quantitative Research</span>
+        </div>
+        <h3 class="card__title" data-i18n="card3_title">Equity Factor Investing Strategy</h3>
+        <p class="card__desc"  data-i18n="card3_desc">A long-short factor strategy built on Value, Momentum and Quality risk premia — constructed from scratch on the S&amp;P 500 with MSCI-aligned scoring, sector-neutral z-scores, and beta-neutral (BAB) portfolio construction, backtested from 2005 to 2026.</p>
+        <div class="card__footer">
+          <div class="card__tech">
+            <span class="card__tech-item">Python</span>
+            <span class="card__tech-item">EODHD API</span>
+            <span class="card__tech-item">HDF5</span>
+          </div>
+          <span class="card__arrow">↗</span>
+        </div>
+      </a>
+
     </div>
   </section>
 
@@ -364,23 +365,15 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
   <div class="strip-outer reveal" style="margin-top:56px;">
     <div class="strip">
       <div class="strip-item">
-        <div class="strip-val" data-i18n="strip_v1">BSc Business Analytics (Honours)</div>
-        <div class="strip-label" data-i18n="strip_l1">Degree</div>
-      </div>
-      <div class="strip-item">
-        <div class="strip-val" data-i18n="strip_v2">University of Amsterdam</div>
-        <div class="strip-label" data-i18n="strip_l2">Education</div>
-      </div>
-      <div class="strip-item">
         <div class="strip-val" data-i18n="strip_v3">Finance, Economics &amp; Market Data</div>
         <div class="strip-label" data-i18n="strip_l3">Specialization</div>
       </div>
       <div class="strip-item">
-        <div class="strip-val" data-i18n="strip_v4">Founder & Team Lead — Quant Finance Club</div>
-        <div class="strip-label" data-i18n="strip_l4">Student Investment Fund</div>
+        <div class="strip-val" data-i18n="strip_v4">Founder &amp; Team Lead — Quant Finance Club</div>
+        <div class="strip-label" data-i18n="strip_l4">Student Research Club</div>
       </div>
       <div class="strip-item">
-        <div class="strip-val" data-i18n="strip_v6">Brazil · Germany · Australia · Nethelands</div>
+        <div class="strip-val" data-i18n="strip_v6">Brazil · Germany · Australia · Netherlands</div>
         <div class="strip-label" data-i18n="strip_l6">Countries Lived</div>
       </div>
       <div class="strip-item">
@@ -730,8 +723,8 @@ const STRINGS = {
 };
 
 const CV_URLS = {
-  en: 'https://raw.githubusercontent.com/darosnakai/darosnakai.github.io/main/cv-en.pdf',
-  pt: 'https://raw.githubusercontent.com/darosnakai/darosnakai.github.io/main/cv-pt.pdf',
+  en: 'https://raw.githubusercontent.com/darosnakai/portfolio/main/cv-en.pdf',
+  pt: 'https://raw.githubusercontent.com/darosnakai/portfolio/main/cv-pt.pdf',
 };
 
 function setLang(lang, btn) {

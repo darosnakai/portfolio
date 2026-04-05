@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="favicon_dn.png" />
 <style>
 :root {
   --bg:         #0a0a0f;
@@ -841,8 +842,8 @@ const STRINGS = {
     nav_home:'Início', nav_current:'Previsão de Inflação Brasileira', nav_back:'← Projetos',
     header_meta_left:'Pesquisa Quantitativa · Machine Learning',
     header_eyebrow:'Previsão de Inflação',
-    header_title:'Inflação Brasileira<br>Modelos de Previsão',
-    header_abstract:'Um modelo sistemático orientado a dados consegue superar os previsores profissionais na inflação brasileira? Este projeto constrói e avalia quatro modelos de machine learning regularizados, treinados em mais de 100 indicadores macroeconômicos — comparando sua precisão com o Boletim Focus, o consenso oficial de mercado compilado pelo Banco Central do Brasil.',
+    header_title:'Modelos de Machine Learning para Previsão do IPCA',
+    header_abstract:'Um modelo sistemático de Machine Learning consegue superar o Boletim Focus? Neste projeto, construí e avaliei diversos modelos de machine learning, treinados em mais de 100 indicadores macroeconômicos, e comparei com o Boletim Focus (média das expectativas de inflação de analistas, compilado pelo Banco Central do Brasil)',
     div_overview:'Visão Geral', div_results:'Resultados',
     div_performance:'Desempenho vs Benchmark', div_chart:'Previsões ao Longo do Tempo',
     div_technical:'Detalhes Técnicos',
@@ -907,14 +908,33 @@ const STRINGS = {
 function setLang(lang, btn) {
   currentLang = lang;
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
+  else document.querySelector(`.lang-btn[onclick*="'${lang}'"]`)?.classList.add('active');
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     if (STRINGS[lang][key] !== undefined) el.innerHTML = STRINGS[lang][key];
   });
   document.documentElement.lang = lang==='pt'?'pt-BR':'en';
+  // Persist to URL
+  const url = new URL(window.location);
+  if (lang === 'pt') url.searchParams.set('lang','pt');
+  else url.searchParams.delete('lang');
+  history.replaceState(null,'',url);
+  // Update back link
+  document.querySelectorAll('a.nav__back, a.nav__logo').forEach(a => {
+    const base = a.href.split('?')[0];
+    a.href = lang === 'pt' ? base + '?lang=pt' : base;
+  });
   if (rawData) { buildPills(); render(); fillHeadlineCards(); renderMetricsTable(); }
 }
+
+/* ── LANG FROM URL ── */
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('lang') === 'pt') {
+    setLang('pt', null);
+  }
+})();
 
 loadData();
 </script>

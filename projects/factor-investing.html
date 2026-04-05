@@ -171,6 +171,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   .chart-card__header{flex-direction:column;align-items:flex-start;}
 }
 
+
+/* LANG TOGGLE */
+.lang-toggle{display:flex;border:1px solid var(--border-hi);border-radius:6px;overflow:hidden;}
+.lang-btn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:5px 11px;border:none;background:transparent;color:var(--text-faint);cursor:pointer;transition:all var(--tr);}
+.lang-btn.active{background:var(--a1);color:#000;font-weight:500;}
+.lang-btn:not(.active):hover{color:var(--text);background:var(--border);}
+
 /* REVEAL ANIMATION */
 .reveal{opacity:0;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease;}
 .reveal.visible{opacity:1;transform:none;}
@@ -182,11 +189,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <a href="../index.html" class="nav__logo">DN<span> / portfolio</span></a>
   <div class="nav__right">
     <span class="nav__breadcrumb">
-      <a href="../index.html" style="color:var(--text-faint);text-decoration:none;font-family:var(--mono);font-size:11px;">Home</a>
+      <a href="../index.html" style="color:var(--text-faint);text-decoration:none;font-family:var(--mono);font-size:11px;" data-i18n="nav_home">Home</a>
       <span class="sep">/</span>
-      <span class="cur">Factor Investing</span>
+      <span class="cur" data-i18n="nav_cur">Factor Investing</span>
     </span>
-    <a href="../index.html#projects" class="nav__back">← Projects</a>
+    <a href="../index.html#projects" class="nav__back" data-i18n="nav_back">← Projects</a>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
+      <button class="lang-btn"        onclick="setLang('pt',this)">PT</button>
+    </div>
   </div>
 </nav>
 
@@ -195,12 +206,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <!-- HEADER -->
   <div class="header reveal">
     <div class="header__meta">
-      <span class="header__meta-left">Quantitative Research · Factor Investing</span>
-      <span class="header__meta-right">S&amp;P 500 Universe · 2005–2026 · Monthly Rebalancing</span>
+      <span class="header__meta-left" data-i18n="meta_left">Quantitative Research · Factor Investing</span>
+      <span class="header__meta-right" data-i18n="meta_right">S&amp;P 500 Universe · 2005–2026 · Monthly Rebalancing</span>
     </div>
-    <div class="header__eyebrow">Systematic Asset Pricing</div>
-    <h1 class="header__title">Equity Factor<br>Investing Strategy</h1>
-    <p class="header__abstract">A long-short factor investing strategy built on three academically-grounded risk premia — Value, Momentum, and Quality — constructed from scratch on the S&amp;P 500 universe using MSCI-aligned scoring methodology, sector-neutral z-scores, and beta-neutral (BAB) portfolio construction. Each factor is validated independently and combined into a multi-factor portfolio benchmarked against the S&amp;P 500.</p>
+    <div class="header__eyebrow" data-i18n="eyebrow">Systematic Asset Pricing</div>
+    <h1 class="header__title" data-i18n="title">Equity Factor<br>Investing Strategy</h1>
+    <p class="header__abstract" data-i18n="abstract">A long-short factor investing strategy built on three academically-grounded risk premia — Value, Momentum, and Quality — constructed from scratch on the S&amp;P 500 universe using MSCI-aligned scoring methodology, sector-neutral z-scores, and beta-neutral (BAB) portfolio construction. Each factor is validated independently and combined into a multi-factor portfolio benchmarked against the S&amp;P 500. Portfolios are rebalanced at the end of each month.</p>
     <div class="tag-row">
       <span class="tag tag--green">Factor Investing</span>
       <span class="tag tag--blue">Long-Short Portfolios</span>
@@ -216,7 +227,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <!-- DISCLAIMER -->
   <div class="disclaimer reveal">
     <span class="disclaimer__icon">⚠</span>
-    <span class="disclaimer__text"><strong>Research disclaimer.</strong> All results are backtested on historical data. No transaction costs, borrowing costs, or market impact are modelled. Results are not indicative of future performance and do not constitute investment advice.</span>
+    <span class="disclaimer__text" data-i18n="disclaimer"><strong data-i18n="disclaimer_strong">Research disclaimer.</strong> All results are backtested on historical data. No transaction costs, borrowing costs, or market impact are modelled. Results are not indicative of future performance and do not constitute investment advice.</span>
   </div>
 
   <!-- KPI STRIP — Multi-Factor Combined -->
@@ -242,7 +253,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     <div class="chart-card__header">
       <div>
         <div class="chart-card__title">Cumulative Returns</div>
-        <div class="chart-card__sub">Growth of $1 invested — common window, monthly rebalancing</div>
+        <div class="chart-card__sub">Growth of $1 invested — common window. Portfolios are rebalanced at the end of each month.</div>
       </div>
       <div class="chart-card__controls" id="cum-controls">
         <button class="tog-btn active" data-series="multi" onclick="toggleSeries('cum','multi',this)" style="--c:#5cf0b0"><span class="dot" style="background:#5cf0b0"></span>Multi-Factor</button>
@@ -256,7 +267,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     <div class="chart-card__body">
       <div id="cum-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
       <div id="cum-error" class="error-msg" style="display:none;"></div>
-      <canvas id="cum-chart" height="380" style="display:none;"></canvas>
+      <canvas id="cum-chart" height="220" style="display:none;"></canvas>
     </div>
   </div>
 
@@ -270,7 +281,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     </div>
     <div class="chart-card__body">
       <div id="dd-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
-      <canvas id="dd-chart" height="260" style="display:none;"></canvas>
+      <canvas id="dd-chart" height="170" style="display:none;"></canvas>
     </div>
   </div>
 
@@ -284,7 +295,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
     </div>
     <div class="chart-card__body">
       <div id="rs-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
-      <canvas id="rs-chart" height="260" style="display:none;"></canvas>
+      <canvas id="rs-chart" height="170" style="display:none;"></canvas>
     </div>
   </div>
 
@@ -311,7 +322,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       </div>
       <div class="chart-card">
         <div class="chart-card__header"><div><div class="chart-card__title">Value Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — Price-to-Book (F_BP), Price-to-Earnings (F_EP), Dividend Yield (F_DY)</div></div></div>
-        <div class="chart-card__body"><canvas id="vsub-chart" height="260"></canvas></div>
+        <div class="chart-card__body"><canvas id="vsub-chart" height="150"></canvas></div>
       </div>
     </div>
 
@@ -325,7 +336,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       </div>
       <div class="chart-card">
         <div class="chart-card__header"><div><div class="chart-card__title">Momentum Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — 12M, 6M, 3M momentum, Price vs MA200, Price vs VWAP</div></div></div>
-        <div class="chart-card__body"><canvas id="msub-chart" height="260"></canvas></div>
+        <div class="chart-card__body"><canvas id="msub-chart" height="170"></canvas></div>
       </div>
     </div>
 
@@ -339,7 +350,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       </div>
       <div class="chart-card">
         <div class="chart-card__header"><div><div class="chart-card__title">Quality Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — ROE, ROA, Gross Profitability, FCF/Assets, CF/NI, Accruals</div></div></div>
-        <div class="chart-card__body"><canvas id="qsub-chart" height="260"></canvas></div>
+        <div class="chart-card__body"><canvas id="qsub-chart" height="170"></canvas></div>
       </div>
     </div>
   </div>
@@ -493,7 +504,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
           <li><strong>No borrowing costs.</strong> Short-selling feasibility and locate costs are not modelled.</li>
           <li><strong>Equal weights within legs.</strong> Size and liquidity biases are not controlled beyond the dollar-volume filter.</li>
           <li><strong>Dividend Yield data starts 2005.</strong> F_DY sub-factor history is limited; the agglomerate Value score falls back to P/B and P/E only for any tickers with missing DY.</li>
-          <li><strong>Wikipedia S&amp;P 500 membership history</strong> is used for Quality — this has limited change history (approx. 2000 onwards), which may introduce mild survivorship bias in early periods.</li>
+
         </ul>
       </div>
     </div>
@@ -530,12 +541,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       </div>
 
       <div class="lit-entry">
-        <div class="lit-authors">Novy-Marx, R. (2013)</div>
-        <div class="lit-title"><em>The other side of value: The gross profitability premium.</em> <span style="color:var(--text-faint);">Journal of Financial Economics, 108(1), 1–28.</span></div>
-        <div class="lit-note">Demonstrates that gross profitability (revenue minus COGS, scaled by assets) is a powerful predictor of stock returns and is nearly orthogonal to the value factor. Directly motivates the inclusion of Gross Profitability as a Quality sub-factor.</div>
-      </div>
-
-      <div class="lit-entry">
         <div class="lit-authors">Frazzini, A., &amp; Pedersen, L. H. (2014)</div>
         <div class="lit-title"><em>Betting Against Beta.</em> <span style="color:var(--text-faint);">Journal of Financial Economics, 111(1), 1–23.</span></div>
         <div class="lit-note">Introduces the BAB factor and the leverage-constrained investor framework that explains why low-beta assets earn higher risk-adjusted returns. The BAB scaling methodology used in this project to construct beta-neutral portfolios follows directly from this paper.</div>
@@ -548,21 +553,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       </div>
 
       <div class="lit-entry">
-        <div class="lit-authors">Asness, C. S., Moskowitz, T. J., &amp; Pedersen, L. H. (2013)</div>
-        <div class="lit-title"><em>Value and Momentum Everywhere.</em> <span style="color:var(--text-faint);">The Journal of Finance, 68(3), 929–985.</span></div>
-        <div class="lit-note">Documents that value and momentum premia exist across asset classes and geographies, and that the two factors are negatively correlated — providing the key theoretical motivation for combining them in a multi-factor portfolio. Directly motivates this project's multi-factor combination.</div>
-      </div>
-
-      <div class="lit-entry">
         <div class="lit-authors">MSCI Inc. (2021)</div>
         <div class="lit-title"><em>MSCI Global Investable Market Indexes Methodology.</em> <span style="color:var(--text-faint);">MSCI Index Methodology Documentation, February 2021.</span></div>
         <div class="lit-note">The official MSCI documentation for factor index construction — including sector-neutral z-scoring, winsorisation procedures, and composite score aggregation. The Value and Momentum scoring methodology in this project follows the MSCI specification as closely as the available data permits.</div>
       </div>
 
       <div class="lit-entry">
-        <div class="lit-authors">Sloan, R. G. (1996)</div>
-        <div class="lit-title"><em>Do Stock Prices Fully Reflect Information in Accruals and Cash Flows about Future Earnings?</em> <span style="color:var(--text-faint);">The Accounting Review, 71(3), 289–315.</span></div>
-        <div class="lit-note">Establishes that high accruals predict lower future returns — investors overweight accrual components of earnings relative to cash flows. This is the direct academic basis for including Accruals (with inverted sign) as a Quality sub-factor in this project.</div>
+        <div class="lit-authors">Blitz, D., Hanauer, M. X., Vidojevic, M., &amp; van Vliet, P. (2018)</div>
+        <div class="lit-title"><em>Five Concerns with the Five-Factor Model.</em> <span style="color:var(--text-faint);">Robeco Quantitative Research — Factor Investing: How Many Factors Are There? Or How to Navigate the 'Factor Zoo'.</span></div>
+        <div class="lit-note">A practitioner-oriented Robeco research paper examining factor proliferation and the challenge of selecting robust, independent factors from the academic literature. Directly relevant to the decision to focus on three well-established, economically-motivated factors in this project.</div>
       </div>
 
     </div>
@@ -716,7 +715,7 @@ async function loadAll() {
       })).filter(r => !isNaN(r.ret));
 
     const val   = parse(vr, 'date', 'F_Value');
-    const mom   = parse(mr, 'date', 'F_Momentum');
+    const mom   = parse(mr, 'date', 'long_ret');   // long-only momentum strategy
     const qual  = parse(qr, 'date', 'F_Quality');
     const spx   = parse(sp, 'date', sp[0] ? Object.keys(sp[0]).find(k=>k!=='date') : 'sp500_ret');
 
@@ -1033,6 +1032,49 @@ const revealObs = new IntersectionObserver(entries => {
   entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
 }, { threshold:0.08 });
 document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+
+// ─────────────────────────────────────────────────
+// i18n
+// ─────────────────────────────────────────────────
+const STRINGS = {
+  en: {
+    nav_home: 'Home',
+    nav_cur: 'Factor Investing',
+    nav_back: '← Projects',
+    meta_left: 'Quantitative Research · Factor Investing',
+    meta_right: 'S&P 500 Universe · 2005–2026 · Monthly Rebalancing',
+    eyebrow: 'Systematic Asset Pricing',
+    title: 'Equity Factor<br>Investing Strategy',
+    abstract: 'A long-short factor investing strategy built on three academically-grounded risk premia — Value, Momentum, and Quality — constructed from scratch on the S&P 500 universe using MSCI-aligned scoring methodology, sector-neutral z-scores, and beta-neutral (BAB) portfolio construction. Each factor is validated independently and combined into a multi-factor portfolio benchmarked against the S&P 500. Portfolios are rebalanced at the end of each month.',
+    disclaimer_strong: 'Research disclaimer.',
+    disclaimer: '<strong>Research disclaimer.</strong> All results are backtested on historical data. No transaction costs, borrowing costs, or market impact are modelled. Results are not indicative of future performance and do not constitute investment advice.',
+  },
+  pt: {
+    nav_home: 'Início',
+    nav_cur: 'Investimento em Fatores',
+    nav_back: '← Projetos',
+    meta_left: 'Pesquisa Quantitativa · Investimento em Fatores',
+    meta_right: 'Universo S&P 500 · 2005–2026 · Rebalanceamento Mensal',
+    eyebrow: 'Precificação Sistemática de Ativos',
+    title: 'Estratégia de<br>Investimento em Fatores',
+    abstract: 'Uma estratégia long-short de investimento em fatores construída sobre três prêmios de risco academicamente fundamentados — Valor, Momentum e Qualidade — desenvolvida do zero no universo do S&P 500 com metodologia de pontuação alinhada à MSCI, z-scores neutros por setor e construção de portfólio neutra ao beta (BAB). Cada fator é validado de forma independente e combinado em um portfólio multifator comparado ao S&P 500. Os portfólios são rebalanceados ao final de cada mês.',
+    disclaimer_strong: 'Aviso de pesquisa.',
+    disclaimer: '<strong>Aviso de pesquisa.</strong> Todos os resultados são baseados em backtests sobre dados históricos. Não são modelados custos de transação, custos de empréstimo ou impacto de mercado. Os resultados não são indicativos de desempenho futuro e não constituem aconselhamento de investimento.',
+  }
+};
+
+function setLang(lang, btn) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (STRINGS[lang] && STRINGS[lang][key] !== undefined) {
+      el.innerHTML = STRINGS[lang][key];
+    }
+  });
+  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+}
 
 // ─────────────────────────────────────────────────
 // INIT

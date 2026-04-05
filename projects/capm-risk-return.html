@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="favicon_dn.png" />
 <style>
 :root {
   --bg:         #0a0a0f;
@@ -163,10 +164,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
 .tech-toggle.open .tech-toggle-icon{transform:rotate(45deg);}
 .tech-body{display:none;padding:28px;grid-template-columns:1fr 1fr;gap:32px;}
 .tech-body.open{display:grid;}
+/* overview body uses same pattern */
+#capm-overview-body{padding:28px;gap:32px;}
 .tech-block-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--a3);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
 .tech-list{list-style:none;display:flex;flex-direction:column;gap:11px;}
-.tech-list li{font-family:var(--mono);font-size:14px;color:var(--text-dim);line-height:1.6;display:flex;gap:10px;}
-.tech-list li::before{content:'→';color:var(--a3);flex-shrink:0;}
+.tech-list li{font-family:var(--mono);font-size:14px;color:var(--text-dim);line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
+.tech-list li::before{content:'→';color:var(--a3);flex-shrink:0;margin-top:1px;}
 
 /* ── DISCLAIMER ── */
 .disclaimer{background:color-mix(in srgb,var(--a5) 6%,transparent);border:1px solid color-mix(in srgb,var(--a5) 18%,transparent);border-radius:var(--radius);padding:18px 22px;display:flex;gap:12px;align-items:flex-start;margin-bottom:32px;}
@@ -253,9 +256,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
   <!-- OVERVIEW -->
   <div class="section-divider"><span class="section-divider__title" data-i18n="div_model">01 — The Model</span><div class="section-divider__line"></div></div>
 
-  <div class="overview-card">
-    <div class="overview-card__header"><div class="overview-card__title" data-i18n="overview_title">Capital Asset Pricing Model</div></div>
-    <div class="overview-card__body">
+  <div class="methodology-card" style="margin-bottom:32px;">
+    <button class="tech-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span data-i18n="overview_dropdown_title">What is CAPM (Capital Asset Pricing Model)?</span>
+      <span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body" style="grid-template-columns:1fr 1fr;" id="capm-overview-body">
       <div>
         <div class="overview-block-title" data-i18n="overview_what_title">What is CAPM?</div>
         <div class="overview-text">
@@ -346,8 +352,21 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
       </div>
 
       <!-- Quick Add Panel -->
-      <div class="quickadd-panel">
+      <div class="quickadd-panel" style="padding:0;">
 
+        <!-- Dropdown header -->
+        <button class="tech-toggle" style="border-bottom:none;border-radius:10px;" id="quickadd-toggle-btn"
+          onclick="
+            const body=document.getElementById('quickadd-body');
+            const open=body.style.display==='block';
+            body.style.display=open?'none':'block';
+            this.classList.toggle('open',!open);
+          ">
+          <span data-i18n="quickadd_panel_title">Pre-defined Portfolios &amp; Sectors</span>
+          <span class="tech-toggle-icon" style="color:var(--a3);">+</span>
+        </button>
+
+        <div id="quickadd-body" style="display:none;padding:18px 20px 20px;">
         <!-- Tab row -->
         <div class="quickadd-tabs">
           <button class="quickadd-tab active" onclick="switchQuickTab('portfolios', this)" data-i18n="qa_tab_portfolios">Portfolios</button>
@@ -534,7 +553,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:cen
           <button class="pill" style="border-color:var(--a2);color:var(--a2);" onclick="clearTickers()" data-i18n="btn_clear">✕ Clear All</button>
         </div>
 
-      </div>
+        </div><!-- end quickadd-body -->
+      </div><!-- end quickadd-panel -->
 
       <button class="run-btn" id="run-btn" onclick="runAnalysis()" disabled>
         <span class="btn-text" data-i18n="btn_run">Run Analysis</span>
@@ -866,34 +886,43 @@ async function loadData() {
   loadWrap.style.display = 'block';
   loadMsg.textContent    = 'Loading market data…';
   bar.style.width        = '15%';
-  try {
-    const resp = await fetch(DATA_URL);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    bar.style.width = '60%';
-    const json = await resp.json();
-    bar.style.width = '85%';
-    capmData = json;
-    availableTickers = Object.keys(json).filter(k => k !== '_meta').sort();
-    bar.style.width = '100%';
-    setTimeout(() => {
-      loadWrap.style.display = 'none';
-      loadMsg.textContent    = '';
-      document.getElementById('tool-controls').style.opacity = '1';
-      document.getElementById('tool-controls').style.pointerEvents = 'auto';
-      document.getElementById('run-btn').disabled = false;
-    }, 300);
-    initTickerSearch();
-    // Auto-load Mag 7 and run analysis on page open
-    setTimeout(() => {
-      quickAddGroup(['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA']);
-      runAnalysis();
-    }, 400);
-  } catch(e) {
-    bar.style.background = 'var(--a2)';
-    bar.style.width = '100%';
-    loadMsg.style.color = 'var(--a2)';
-    loadMsg.textContent = `Failed to load data: ${e.message}. Please refresh.`;
+  const urls = [
+    DATA_URL,
+    DATA_URL.replace('https://raw.githubusercontent.com','https://cdn.jsdelivr.net/gh').replace('/main/','/main@latest/')
+  ];
+  let lastErr = null;
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url, { mode: 'cors' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      bar.style.width = '60%';
+      const json = await resp.json();
+      bar.style.width = '85%';
+      capmData = json;
+      availableTickers = Object.keys(json).filter(k => k !== '_meta').sort();
+      bar.style.width = '100%';
+      setTimeout(() => {
+        loadWrap.style.display = 'none';
+        loadMsg.textContent    = '';
+        document.getElementById('tool-controls').style.opacity = '1';
+        document.getElementById('tool-controls').style.pointerEvents = 'auto';
+        document.getElementById('run-btn').disabled = false;
+      }, 300);
+      initTickerSearch();
+      // Pre-select Mag 7 without auto-running analysis
+      setTimeout(() => {
+        quickAddGroup(['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA']);
+      }, 400);
+      return;
+    } catch(e) {
+      lastErr = e;
+      bar.style.width = '30%';
+    }
   }
+  bar.style.background = 'var(--a2)';
+  bar.style.width = '100%';
+  loadMsg.style.color = 'var(--a2)';
+  loadMsg.textContent = `Failed to load data: ${lastErr?.message}. Please refresh or check your connection.`;
 }
 
 /* ─── PILLS ─── */
@@ -1182,7 +1211,7 @@ function renderResults(results, mktMeanPct, rfPct){
   renderRollingCharts();
 
   document.getElementById('results-section').classList.add('visible');
-  document.getElementById('results-section').scrollIntoView({behavior:'smooth',block:'start'});
+  // No auto-scroll — user stays at the top of the page
 }
 
 /* ── Excess Scatter ── */
@@ -1341,6 +1370,7 @@ const CAPM_STRINGS = {
     header_title:'Interactive Equity Risk<br>Dashboard (CAPM-Based)',
     header_abstract:'Select any S&amp;P 500 constituents, choose your lookback window, and compute each stock\'s beta, Jensen\'s alpha, Sharpe and Treynor ratios — live, in the browser. Data sourced from Yahoo Finance and EODHD API.',
     div_model:'01 — The Model',
+    overview_dropdown_title:'What is CAPM (Capital Asset Pricing Model)?',
     overview_title:'Capital Asset Pricing Model',
     overview_what_title:'What is CAPM?',
     overview_p1:'CAPM is a foundational model in finance that links an asset\'s expected return to its systematic risk (beta) relative to a market index.',
@@ -1365,6 +1395,7 @@ const CAPM_STRINGS = {
     ctrl_tickers:'Search &amp; Select Tickers (S&amp;P 500)',
     no_tickers:'No tickers selected yet',
     quickadd_hint:'Curate your own portfolio using the search above, or select one of the pre-defined portfolios below:',
+    quickadd_panel_title:'Pre-defined Portfolios &amp; Sectors',
     qa_tab_portfolios:'Portfolios', qa_tab_sectors:'Sectors',
     qa_defensive:'Defensive / Low Beta', qa_highbeta:'High Beta / Growth',
     qa_value:'Value / Dividend',
@@ -1454,6 +1485,7 @@ const CAPM_STRINGS = {
     header_title:'Plataforma Interativa de Análise de Risco e Retorno (CAPM)',
     header_abstract:'Selecione ações do S&amp;P 500, escolha o período de análise e calcule o beta, o alfa de Jensen, os índices de Sharpe e Treynor de cada ação — em tempo real, no navegador. Dados do Yahoo Finance e da API EODHD.',
     div_model:'01 — O Modelo',
+    overview_dropdown_title:'O que é o CAPM (Modelo de Precificação de Ativos de Capital)?',
     overview_title:'Modelo de Precificação de Ativos de Capital',
     overview_what_title:'O que é o CAPM?',
     overview_p1:'O CAPM é um modelo fundamental em finanças que relaciona o retorno esperado de um ativo ao seu risco sistemático (beta) em relação a um índice de mercado.',
@@ -1478,6 +1510,7 @@ const CAPM_STRINGS = {
     ctrl_tickers:'Pesquisar &amp; Selecionar Ações (S&amp;P 500)',
     no_tickers:'Nenhuma ação selecionada ainda',
     quickadd_hint:'Monte seu próprio portfólio usando a busca acima, ou selecione um dos portfólios pré-definidos abaixo:',
+    quickadd_panel_title:'Portfólios e Setores Pré-definidos',
     qa_tab_portfolios:'Portfólios', qa_tab_sectors:'Setores',
     qa_defensive:'Defensivo / Beta Baixo', qa_highbeta:'Beta Alto / Crescimento',
     qa_value:'Valor / Dividendo',
@@ -1563,14 +1596,33 @@ const CAPM_STRINGS = {
 
 function setLang(lang, btn) {
   document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
+  else document.querySelector(`.lang-btn[onclick*="'${lang}'"]`)?.classList.add('active');
   const S = CAPM_STRINGS[lang];
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     if (S[key] !== undefined) el.innerHTML = S[key];
   });
   document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+  // Update URL param without reload
+  const url = new URL(window.location);
+  if (lang === 'pt') url.searchParams.set('lang','pt');
+  else url.searchParams.delete('lang');
+  history.replaceState(null,'',url);
+  // Update back link to carry lang param
+  document.querySelectorAll('a.nav__back, a.nav__logo').forEach(a => {
+    const base = a.href.split('?')[0];
+    a.href = lang === 'pt' ? base + '?lang=pt' : base;
+  });
 }
+
+/* ── LANG FROM URL ── */
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('lang') === 'pt') {
+    setLang('pt', null);
+  }
+})();
 
 loadData();
 </script>

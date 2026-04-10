@@ -684,8 +684,20 @@ const STRINGS={
   en:{nav_cur:'Factor Investing',nav_back:'← Research',meta_left:'Systematic Asset Pricing · Factor Investing',meta_right:'S&P 500 Universe · 2005–2026 · Monthly Rebalancing',eyebrow:'Quantitative Equity Strategy',title:'Long-Short Factor<br>Investing Strategy',abstract:'A market-neutral long-short equity strategy built on three academically-grounded risk premia — Value, Momentum, and Quality — constructed from scratch on the S&P 500 universe using MSCI-aligned composite scoring, sector-neutral z-scores, and Betting-Against-Beta (BAB) portfolio construction. Each factor is validated independently and combined into a multi-factor portfolio benchmarked against the S&P 500, with monthly rebalancing.',disclaimer:'<strong>Research disclaimer.</strong> All results are backtested on historical data. No transaction costs, borrowing costs, or market impact are modelled. Results are not indicative of future performance and do not constitute investment advice.'},
   pt:{nav_cur:'Investimento em Fatores',nav_back:'← Pesquisa',meta_left:'Precificação Sistemática · Investimento em Fatores',meta_right:'Universo S&P 500 · 2005–2026 · Rebalanceamento Mensal',eyebrow:'Estratégia Quantitativa de Ações',title:'Estratégia Long-Short<br>de Investimento em Fatores',abstract:'Uma estratégia long-short neutra ao mercado construída sobre três prêmios de risco — Valor, Momentum e Qualidade — desenvolvida no universo do S&P 500 com pontuação composta alinhada à MSCI, z-scores neutros por setor e construção BAB. Cada fator é validado de forma independente e combinado em um portfólio multifator comparado ao S&P 500, com rebalanceamento mensal.',disclaimer:'<strong>Aviso de pesquisa.</strong> Todos os resultados são baseados em backtests sobre dados históricos. Não são modelados custos de transação, custos de empréstimo ou impacto de mercado. Os resultados não são indicativos de desempenho futuro e não constituem aconselhamento de investimento.'}
 };
-function setLang(lang,btn){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(STRINGS[lang]?.[key]!==undefined)el.innerHTML=STRINGS[lang][key];});document.documentElement.lang=lang==='pt'?'pt-BR':'en';}
-(function(){const p=new URLSearchParams(window.location.search);if(p.get('lang')==='pt')setLang('pt',document.querySelector('.lang-btn:last-child'));})();
+function setLang(lang,btn){
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  else document.querySelector(`.lang-btn[onclick*="'${lang}'"]`)?.classList.add('active');
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(STRINGS[lang]?.[key]!==undefined)el.innerHTML=STRINGS[lang][key];});
+  document.documentElement.lang=lang==='pt'?'pt-BR':'en';
+  const url=new URL(window.location);
+  if(lang==='pt')url.searchParams.set('lang','pt');else url.searchParams.delete('lang');
+  history.replaceState(null,'',url);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('lang') === 'pt') setLang('pt', null);
+});
 
 loadAll();
 </script>

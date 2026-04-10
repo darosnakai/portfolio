@@ -1682,12 +1682,10 @@ function setLang(lang, btn) {
 }
 
 /* ── LANG FROM URL ── */
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get('lang') === 'pt') {
-    setLang('pt', null);
-  }
-})();
+  if (params.get('lang') === 'pt') setLang('pt', null);
+});
 
 loadData();
 </script>

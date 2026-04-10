@@ -879,6 +879,11 @@ function setLang(lang, btn) {
   history.replaceState(null,'',url);
   const cvBtn = document.getElementById('cv-btn');
   if (cvBtn) cvBtn.href = CV_URLS[lang] ?? CV_URLS.en;
+  // Carry lang param into project card links
+  document.querySelectorAll('a.project-card').forEach(a => {
+    const base = a.href.split('?')[0];
+    a.href = lang === 'pt' ? base + '?lang=pt' : base;
+  });
 }
 
 /* LANG FROM URL */

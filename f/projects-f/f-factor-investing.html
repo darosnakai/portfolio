@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Long-Short Factor Strategy — Daros Nakai</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="icon" type="image/png" href="favicon_dn.png"/>
+<style>
+:root{--bg:#faf8f3;--bg2:#f3f0e8;--bg3:#eceae0;--ink:#0f0f0f;--ink-mid:#3a3530;--ink-dim:#7a7060;--ink-faint:#b0a890;--rule:#dedad0;--rule-hi:#c8c0a8;--gold:#9a7c3a;--gold-light:#c8a85a;--serif:'Playfair Display',Georgia,serif;--mono:'IBM Plex Mono',monospace;--sans:'DM Sans',sans-serif;--radius:4px;--tr:0.2s ease;--nav-h:56px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px 200px;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 56px;height:var(--nav-h);background:rgba(250,248,243,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule);}
+.nav__logo{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--ink);text-decoration:none;}
+.nav__right{display:flex;align-items:center;gap:24px;}
+.nav__back{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);text-decoration:none;transition:color var(--tr);}
+.nav__back:hover{color:var(--gold);}
+.nav__breadcrumb{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.04em;}
+.nav__breadcrumb .sep{margin:0 6px;}
+.nav__breadcrumb .cur{color:var(--ink-dim);}
+.lang-toggle{display:flex;border:1px solid var(--rule-hi);border-radius:3px;overflow:hidden;}
+.lang-btn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:5px 11px;border:none;background:transparent;color:var(--ink-faint);cursor:pointer;transition:all var(--tr);}
+.lang-btn.active{background:var(--ink);color:var(--bg);}
+.lang-btn:not(.active):hover{color:var(--ink);background:var(--bg2);}
+
+/* PAGE */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:calc(var(--nav-h) + 56px) 56px 120px;}
+
+/* SECTION DIVIDER */
+.section-divider{display:flex;align-items:center;gap:14px;margin-bottom:24px;margin-top:64px;}
+.section-divider__title{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);white-space:nowrap;}
+.section-divider__line{flex:1;height:1px;background:var(--rule);}
+
+/* HEADER */
+.header{margin-bottom:48px;padding-bottom:40px;border-bottom:1px solid var(--rule);}
+.header__meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid var(--rule);}
+.header__meta-left{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.12em;text-transform:uppercase;}
+.header__meta-right{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.06em;}
+.header__eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.header__eyebrow::before{content:'';display:inline-block;width:24px;height:1px;background:var(--gold);}
+.header__title{font-family:var(--serif);font-size:clamp(28px,4vw,52px);font-weight:700;line-height:1.05;letter-spacing:-.01em;color:var(--ink);margin-bottom:18px;}
+.header__rule{width:48px;height:1px;background:var(--rule-hi);margin-bottom:20px;}
+.header__abstract{font-family:var(--sans);font-size:15px;color:var(--ink-mid);line-height:1.78;max-width:720px;}
+
+/* DISCLAIMER */
+.disclaimer{background:color-mix(in srgb,var(--gold) 5%,transparent);border:1px solid color-mix(in srgb,var(--gold) 18%,transparent);border-radius:var(--radius);padding:16px 20px;display:flex;gap:12px;align-items:flex-start;margin-bottom:28px;}
+.disclaimer__icon{font-family:var(--mono);font-size:12px;color:var(--gold);flex-shrink:0;padding-top:1px;}
+.disclaimer__text{font-family:var(--mono);font-size:12px;color:var(--ink-dim);line-height:1.7;}
+.disclaimer__text strong{color:var(--gold);font-weight:500;}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;margin-bottom:32px;}
+.kpi-item{padding:20px 18px;border-right:1px solid var(--rule);background:var(--bg);}
+.kpi-item:last-child{border-right:none;}
+.kpi-val{font-family:var(--serif);font-size:clamp(15px,1.6vw,20px);font-weight:600;color:var(--gold);line-height:1.2;margin-bottom:5px;}
+.kpi-val.neg{color:#8a4a3a;}
+.kpi-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);margin-bottom:2px;}
+.kpi-sub{font-family:var(--mono);font-size:9px;color:var(--ink-faint);}
+
+/* CHART CARD */
+.chart-card{background:var(--bg2);border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;}
+.chart-card__header{padding:16px 22px 12px;border-bottom:1px solid var(--rule);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.chart-card__title{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink);}
+.chart-card__sub{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:3px;}
+.chart-card__controls{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.chart-card__body{padding:22px;}
+
+/* TOGGLE BUTTONS */
+.tog-btn{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:4px 11px;border-radius:2px;border:1px solid var(--rule-hi);background:transparent;color:var(--ink-dim);cursor:pointer;transition:all var(--tr);display:flex;align-items:center;gap:5px;}
+.tog-btn:hover{border-color:var(--gold);color:var(--ink);}
+.tog-btn.active{color:var(--bg);font-weight:500;}
+.tog-btn .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tog-btn--log{border-color:var(--rule);color:var(--ink-faint);font-size:9px;padding:3px 9px;}
+.tog-btn--log.active{background:var(--bg3);color:var(--ink-dim);border-color:var(--rule-hi);}
+
+/* FACTOR TABS */
+.factor-tabs{display:flex;gap:0;margin-bottom:24px;border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;}
+.factor-tab{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:10px 24px;border:none;border-right:1px solid var(--rule);background:var(--bg2);color:var(--ink-dim);cursor:pointer;transition:all var(--tr);flex:1;text-align:center;}
+.factor-tab:last-child{border-right:none;}
+.factor-tab:hover{color:var(--ink);background:var(--bg3);}
+.factor-tab.active{background:var(--ink);color:var(--bg);}
+.factor-panel{display:none;}
+.factor-panel.active{display:block;}
+
+/* FACTOR KPI ROW */
+.factor-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;}
+.fkpi{background:var(--bg);padding:16px 18px;}
+.fkpi__label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:5px;}
+.fkpi__val{font-family:var(--serif);font-size:18px;font-weight:600;line-height:1;}
+.fkpi__val.pos{color:var(--gold);}
+.fkpi__val.neg{color:#8a4a3a;}
+.fkpi__val.neu{color:#4a6888;}
+
+/* TECH / METHODOLOGY */
+.tech-card{background:var(--bg2);border:1px solid var(--rule);border-radius:var(--radius);margin-bottom:16px;}
+.tech-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 22px;background:transparent;border:none;cursor:pointer;font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-.01em;border-bottom:1px solid transparent;transition:background var(--tr);}
+.tech-toggle:hover{background:var(--bg3);}
+.tech-toggle.open{border-bottom-color:var(--rule);}
+.tech-toggle-icon{font-family:var(--mono);font-size:16px;color:var(--gold);transition:transform .2s;}
+.tech-toggle.open .tech-toggle-icon{transform:rotate(45deg);}
+.tech-body{display:none;padding:28px;}
+.tech-body.open{display:block;}
+.tech-body--grid{display:none;padding:28px;grid-template-columns:1fr 1fr;gap:32px;}
+.tech-body--grid.open{display:grid;}
+.tech-block-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--rule);}
+.tech-list{list-style:none;display:flex;flex-direction:column;gap:11px;}
+.tech-list li{font-family:var(--sans);font-size:13px;color:var(--ink-dim);line-height:1.65;display:flex;gap:10px;}
+.tech-list li::before{content:'—';color:var(--gold);flex-shrink:0;font-family:var(--mono);}
+.tech-prose{font-family:var(--sans);font-size:13px;color:var(--ink-dim);line-height:1.75;}
+.tech-prose p{margin-bottom:12px;}
+.tech-prose p:last-child{margin-bottom:0;}
+.formula-box{background:var(--bg3);border:1px solid var(--rule-hi);border-radius:3px;padding:14px 18px;font-family:var(--mono);font-size:13px;color:var(--gold);margin:12px 0;text-align:center;}
+.formula-box .formula-label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-faint);display:block;margin-bottom:5px;}
+
+/* CORRELATION */
+.corr-grid{display:grid;grid-template-columns:80px repeat(4,1fr);gap:2px;font-family:var(--mono);font-size:11px;}
+.corr-cell{padding:10px 8px;text-align:center;border-radius:3px;display:flex;align-items:center;justify-content:center;}
+.corr-label{color:var(--ink-dim);font-size:10px;letter-spacing:.08em;background:transparent!important;}
+.corr-header{color:var(--ink-faint);font-size:10px;letter-spacing:.08em;background:var(--bg3)!important;border-radius:3px;}
+
+/* LOADING */
+.loading-overlay{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px;}
+.spinner{width:24px;height:24px;border:1.5px solid var(--rule-hi);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-text{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);}
+.error-msg{font-family:var(--mono);font-size:12px;color:#8a4a3a;background:color-mix(in srgb,#8a4a3a 8%,transparent);border:1px solid color-mix(in srgb,#8a4a3a 20%,transparent);border-radius:3px;padding:12px 16px;margin:16px 0;}
+
+/* LITERATURE */
+.lit-entry{padding-bottom:18px;border-bottom:1px solid var(--rule);margin-bottom:4px;}
+.lit-entry:last-child{border-bottom:none;padding-bottom:0;margin-bottom:0;}
+.lit-authors{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.04em;margin-bottom:5px;}
+.lit-title{font-family:var(--sans);font-size:13px;color:var(--ink);line-height:1.55;margin-bottom:6px;}
+.lit-title em{font-style:italic;}
+.lit-note{font-family:var(--sans);font-size:12px;color:var(--ink-dim);line-height:1.65;}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease;}
+.reveal.visible{opacity:1;transform:none;}
+
+/* FOOTER */
+footer{position:relative;z-index:1;max-width:1100px;margin:80px auto 0;padding:28px 56px;border-top:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;}
+.footer__copy{font-family:var(--mono);font-size:11px;color:var(--ink-faint);}
+.footer__links{display:flex;gap:24px;list-style:none;}
+.footer__links a{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-decoration:none;letter-spacing:.06em;transition:color var(--tr);}
+.footer__links a:hover{color:var(--gold);}
+
+@media(max-width:768px){
+  nav{padding:0 20px;} .nav__breadcrumb{display:none;}
+  .page{padding:calc(var(--nav-h)+32px) 20px 80px;}
+  .kpi-strip{grid-template-columns:repeat(2,1fr);}
+  .factor-kpi-row{grid-template-columns:repeat(2,1fr);}
+  .tech-body--grid{grid-template-columns:1fr;}
+  footer{padding:24px 20px;flex-direction:column;gap:16px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav__logo">Daros Nakai</a>
+  <div class="nav__right">
+    <span class="nav__breadcrumb">
+      <a href="../index.html" style="color:var(--ink-faint);text-decoration:none;font-family:var(--mono);font-size:10px;">Home</a>
+      <span class="sep">/</span>
+      <span class="cur" data-i18n="nav_cur">Factor Investing</span>
+    </span>
+    <a href="../index.html#projects" class="nav__back" data-i18n="nav_back">← Research</a>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
+      <button class="lang-btn" onclick="setLang('pt',this)">PT</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="header reveal">
+    <div class="header__meta">
+      <span class="header__meta-left" data-i18n="meta_left">Systematic Asset Pricing · Factor Investing</span>
+      <span class="header__meta-right" data-i18n="meta_right">S&amp;P 500 Universe · 2005–2026 · Monthly Rebalancing</span>
+    </div>
+    <div class="header__eyebrow" data-i18n="eyebrow">Quantitative Equity Strategy</div>
+    <h1 class="header__title" data-i18n="title">Long-Short Factor<br>Investing Strategy</h1>
+    <div class="header__rule"></div>
+    <p class="header__abstract" data-i18n="abstract">A market-neutral long-short equity strategy built on three academically-grounded risk premia — Value, Momentum, and Quality — constructed from scratch on the S&amp;P 500 universe using MSCI-aligned composite scoring, sector-neutral z-scores, and Betting-Against-Beta (BAB) portfolio construction. Each factor is validated independently and combined into a multi-factor portfolio benchmarked against the S&amp;P 500, with monthly rebalancing.</p>
+  </div>
+
+  <div class="disclaimer reveal">
+    <span class="disclaimer__icon">⚠</span>
+    <span class="disclaimer__text" data-i18n="disclaimer"><strong>Research disclaimer.</strong> All results are backtested on historical data. No transaction costs, borrowing costs, or market impact are modelled. Results are not indicative of future performance and do not constitute investment advice.</span>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Multi-Factor Combined</span>
+    <div class="section-divider__line"></div>
+  </div>
+  <div class="kpi-strip reveal">
+    <div class="kpi-item"><div class="kpi-val" id="kpi-ret">—</div><div class="kpi-label">Ann. Return</div><div class="kpi-sub">Equal-weighted</div></div>
+    <div class="kpi-item"><div class="kpi-val" id="kpi-sharpe">—</div><div class="kpi-label">Sharpe Ratio</div><div class="kpi-sub">Annualised</div></div>
+    <div class="kpi-item"><div class="kpi-val neg" id="kpi-dd">—</div><div class="kpi-label">Max Drawdown</div><div class="kpi-sub">Peak to trough</div></div>
+    <div class="kpi-item"><div class="kpi-val" id="kpi-vol">—</div><div class="kpi-label">Ann. Volatility</div><div class="kpi-sub">Monthly std × √12</div></div>
+    <div class="kpi-item"><div class="kpi-val" id="kpi-period">—</div><div class="kpi-label">Sample Period</div><div class="kpi-sub">Common window</div></div>
+  </div>
+
+  <!-- PERFORMANCE -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Performance</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="chart-card reveal">
+    <div class="chart-card__header">
+      <div>
+        <div class="chart-card__title">Cumulative Returns</div>
+        <div class="chart-card__sub">Growth of $1 invested — common window · monthly rebalancing</div>
+      </div>
+      <div class="chart-card__controls" id="cum-controls">
+        <button class="tog-btn active" data-series="multi" onclick="toggleSeries('cum','multi',this)"><span class="dot" style="background:#7a9e6a"></span>Multi-Factor</button>
+        <button class="tog-btn active" data-series="value" onclick="toggleSeries('cum','value',this)"><span class="dot" style="background:#9aafcc"></span>Value</button>
+        <button class="tog-btn active" data-series="momentum" onclick="toggleSeries('cum','momentum',this)"><span class="dot" style="background:#b8a8cc"></span>Momentum</button>
+        <button class="tog-btn active" data-series="quality" onclick="toggleSeries('cum','quality',this)"><span class="dot" style="background:#c8a870"></span>Quality</button>
+        <button class="tog-btn active" data-series="sp500" onclick="toggleSeries('cum','sp500',this)"><span class="dot" style="background:#b0a890"></span>S&amp;P 500</button>
+        <button class="tog-btn tog-btn--log" id="log-toggle" onclick="toggleLog()">Log Scale</button>
+      </div>
+    </div>
+    <div class="chart-card__body">
+      <div id="cum-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
+      <div id="cum-error" class="error-msg" style="display:none;"></div>
+      <canvas id="cum-chart" height="220" style="display:none;"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card reveal">
+    <div class="chart-card__header">
+      <div><div class="chart-card__title">Drawdown</div><div class="chart-card__sub">Peak-to-trough decline from running maximum</div></div>
+    </div>
+    <div class="chart-card__body">
+      <div id="dd-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
+      <canvas id="dd-chart" height="170" style="display:none;"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card reveal">
+    <div class="chart-card__header">
+      <div><div class="chart-card__title">Rolling 12-Month Sharpe Ratio</div><div class="chart-card__sub">Annualised Sharpe computed on trailing 12 monthly returns</div></div>
+    </div>
+    <div class="chart-card__body">
+      <div id="rs-loading" class="loading-overlay"><div class="spinner"></div><span class="loading-text">Loading data…</span></div>
+      <canvas id="rs-chart" height="170" style="display:none;"></canvas>
+    </div>
+  </div>
+
+  <!-- FACTOR BREAKDOWN -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Factor Breakdown</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="reveal">
+    <div class="factor-tabs">
+      <button class="factor-tab active" onclick="switchFactor('value',this)">Value</button>
+      <button class="factor-tab" onclick="switchFactor('momentum',this)">Momentum</button>
+      <button class="factor-tab" onclick="switchFactor('quality',this)">Quality</button>
+    </div>
+
+    <div class="factor-panel active" id="panel-value">
+      <div class="factor-kpi-row">
+        <div class="fkpi"><div class="fkpi__label">Ann. Return</div><div class="fkpi__val pos" id="v-ret">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Sharpe</div><div class="fkpi__val neu" id="v-sharpe">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Max Drawdown</div><div class="fkpi__val neg" id="v-dd">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Ann. Volatility</div><div class="fkpi__val neu" id="v-vol">—</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card__header"><div><div class="chart-card__title">Value Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — Price-to-Book (F_BP), Price-to-Earnings (F_EP), Dividend Yield (F_DY)</div></div></div>
+        <div class="chart-card__body"><canvas id="vsub-chart" height="150"></canvas></div>
+      </div>
+    </div>
+
+    <div class="factor-panel" id="panel-momentum">
+      <div class="factor-kpi-row">
+        <div class="fkpi"><div class="fkpi__label">Ann. Return</div><div class="fkpi__val pos" id="m-ret">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Sharpe</div><div class="fkpi__val neu" id="m-sharpe">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Max Drawdown</div><div class="fkpi__val neg" id="m-dd">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Ann. Volatility</div><div class="fkpi__val neu" id="m-vol">—</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card__header"><div><div class="chart-card__title">Momentum Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — 12M, 6M, 3M momentum, Price vs MA200, Price vs VWAP</div></div></div>
+        <div class="chart-card__body"><canvas id="msub-chart" height="170"></canvas></div>
+      </div>
+    </div>
+
+    <div class="factor-panel" id="panel-quality">
+      <div class="factor-kpi-row">
+        <div class="fkpi"><div class="fkpi__label">Ann. Return</div><div class="fkpi__val pos" id="q-ret">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Sharpe</div><div class="fkpi__val neu" id="q-sharpe">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Max Drawdown</div><div class="fkpi__val neg" id="q-dd">—</div></div>
+        <div class="fkpi"><div class="fkpi__label">Ann. Volatility</div><div class="fkpi__val neu" id="q-vol">—</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card__header"><div><div class="chart-card__title">Quality Sub-Factor Returns</div><div class="chart-card__sub">Annualised return — ROE, ROA, Gross Profitability, FCF/Assets, CF/NI, Accruals</div></div></div>
+        <div class="chart-card__body"><canvas id="qsub-chart" height="170"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORRELATION -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Factor Correlation</span>
+    <div class="section-divider__line"></div>
+  </div>
+  <div class="chart-card reveal">
+    <div class="chart-card__header"><div><div class="chart-card__title">Pairwise Correlation Matrix</div><div class="chart-card__sub">Monthly return correlations — low correlation supports diversification across factors</div></div></div>
+    <div class="chart-card__body"><div id="corr-container" style="display:flex;justify-content:center;padding:8px 0;"></div></div>
+  </div>
+
+  <!-- METHODOLOGY -->
+  <div class="section-divider reveal">
+    <span class="section-divider__title">Methodology</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="tech-card reveal">
+    <button class="tech-toggle" onclick="toggleSection(this)">
+      <span>Hypothesis &amp; Economic Rationale</span><span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body--grid">
+      <div>
+        <div class="tech-block-title">Why these factors persist</div>
+        <div class="tech-prose">
+          <p>Factor premia are explained by a combination of risk-based and behavioural arguments. Risk-based theories hold that higher expected returns compensate investors for bearing systematic risks that cannot be diversified away. Behavioural theories argue that cognitive biases — overreaction, anchoring, herding — create persistent mispricings that rational investors can exploit.</p>
+        </div>
+        <ul class="tech-list" style="margin-top:16px;">
+          <li><strong>Value:</strong> Cheap stocks carry higher fundamental risk. Investors systematically overprice glamour stocks and underprice value stocks due to extrapolation bias.</li>
+          <li><strong>Momentum:</strong> Underreaction to news causes prices to drift in the direction of recent returns. Trend-following and disposition effects reinforce the anomaly.</li>
+          <li><strong>Quality:</strong> Investors underweight the persistence of high-quality earnings. High profitability is not fully reflected in prices due to limited attention and accounting complexity.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title">Score construction</div>
+        <ul class="tech-list">
+          <li><strong>Value Score</strong> = avg[z(−P/B), z(−P/E), z(DY)] — following MSCI Global Factor Index methodology</li>
+          <li><strong>Momentum Score</strong> = avg[z(12M ret), z(6M ret), z(3M ret), z(dist MA200), z(dist VWAP)]</li>
+          <li><strong>Quality Score</strong> = avg[z(ROE), z(ROA), z(Gross Profit/Assets), z(FCF/Assets), z(CF/NI), z(−Accruals)]</li>
+          <li>All z-scores are sector-neutral — computed within GICS sector × date groups to avoid sector loading</li>
+          <li>All metrics winsorised at 1st/99th percentile before scoring to remove outlier contamination</li>
+        </ul>
+        <div class="formula-box">
+          <span class="formula-label">General Score Formula</span>
+          Score<sub>i,t</sub> = (1/N) Σ z<sub>sector</sub>(winsorise(x<sub>i,t</sub>))
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tech-card reveal">
+    <button class="tech-toggle" onclick="toggleSection(this)">
+      <span>Data &amp; Universe</span><span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body--grid">
+      <div>
+        <div class="tech-block-title">Data sources</div>
+        <ul class="tech-list">
+          <li>Price data: EODHD API — adjusted daily close, volume, high/low for all S&amp;P 500 constituents. Stored in HDF5 format keyed by ticker.</li>
+          <li>Fundamentals: EODHD quarterly statements — Income Statement, Balance Sheet, Cash Flow. Filing dates used to shift signals to the next trading day after announcement.</li>
+          <li>Dividend Yield: EODHD dividend history — annualised DPS / price, recomputed daily.</li>
+          <li>S&amp;P 500 benchmark: daily index returns 1976–2026, compounded to monthly for comparison.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title">Universe construction</div>
+        <ul class="tech-list">
+          <li>Starting universe: all historical S&amp;P 500 constituents from 2005 to 2026, sourced from Wikipedia revision history to approximate index membership at each date.</li>
+          <li>Liquidity filter: stocks with 30-day average dollar volume below the 20th percentile of the universe are excluded at each rebalance.</li>
+          <li>Survivorship bias: delisted tickers are included up to their last available date; no forward-looking exclusion.</li>
+          <li>Minimum history: stocks require at least 252 trading days of price history for beta estimation.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="tech-card reveal">
+    <button class="tech-toggle" onclick="toggleSection(this)">
+      <span>Portfolio Construction &amp; BAB</span><span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body--grid">
+      <div>
+        <div class="tech-block-title">Long-short construction</div>
+        <ul class="tech-list">
+          <li>At each month-end, stocks ranked by composite factor score within the eligible universe.</li>
+          <li>Long leg: top 20% of scores (high factor exposure). Short leg: bottom 20% (low factor exposure).</li>
+          <li>Equal weighting within each leg — no size or liquidity tilt applied beyond the initial filter.</li>
+          <li>Multi-factor portfolio: equal-weighted average of Value, Momentum, and Quality monthly returns.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title">Beta-neutralisation (BAB)</div>
+        <div class="tech-prose">
+          <p>Following Frazzini &amp; Pedersen (2014), each leg is scaled by the inverse of its ex-ante beta to achieve beta neutrality with respect to the market:</p>
+        </div>
+        <div class="formula-box">
+          <span class="formula-label">BAB Return Formula</span>
+          r<sub>BAB</sub> = (1/β<sub>L</sub>) · r<sub>L</sub> − (1/β<sub>H</sub>) · r<sub>H</sub>
+        </div>
+        <ul class="tech-list" style="margin-top:12px;">
+          <li>Rolling 252-day beta estimated as Cov(r<sub>i</sub>, r<sub>m</sub>) / Var(r<sub>m</sub>) for each stock at each rebalance date.</li>
+          <li>Beta bounds: [0.05, 3.0] — extreme betas excluded.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="tech-card reveal">
+    <button class="tech-toggle" onclick="toggleSection(this)">
+      <span>Validation &amp; Limitations</span><span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body--grid">
+      <div>
+        <div class="tech-block-title">Validation checks performed</div>
+        <ul class="tech-list">
+          <li>Stock counts per leg monitored each month — portfolios with fewer than 150 names excluded.</li>
+          <li>Return sanity checks: extreme monthly returns (|r| > 50%) investigated and traced to specific stocks/events.</li>
+          <li>Look-ahead bias: fundamentals shifted to next trading day after filing date; momentum signals skip most-recent month (t−1).</li>
+          <li>Duplicate row checks performed on all HDF5 data layers before any portfolio construction.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title">Known limitations</div>
+        <ul class="tech-list">
+          <li><strong>No transaction costs.</strong> High-turnover factors (Momentum) are most affected. Real-world implementation would require netting trades across factors.</li>
+          <li><strong>No borrowing costs.</strong> Short-selling feasibility and locate costs are not modelled.</li>
+          <li><strong>Equal weights within legs.</strong> Size and liquidity biases are not controlled beyond the dollar-volume filter.</li>
+          <li><strong>Dividend Yield data starts 2005.</strong> F_DY sub-factor history is limited; Value score falls back to P/B and P/E only for tickers with missing DY.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- LITERATURE -->
+  <div class="section-divider reveal" style="margin-top:64px;">
+    <span class="section-divider__title">Key References</span>
+    <div class="section-divider__line"></div>
+  </div>
+
+  <div class="tech-card reveal" style="padding:0;">
+    <div style="padding:20px 24px 14px;border-bottom:1px solid var(--rule);">
+      <span style="font-family:var(--serif);font-size:15px;font-weight:600;color:var(--ink);">Literature</span>
+    </div>
+    <div style="padding:24px 28px;display:flex;flex-direction:column;gap:20px;">
+      <div class="lit-entry">
+        <div class="lit-authors">Fama, E. F., &amp; French, K. R. (1992)</div>
+        <div class="lit-title"><em>The Cross-Section of Expected Stock Returns.</em> <span style="color:var(--ink-faint);">The Journal of Finance, 47(2), 427–465.</span></div>
+        <div class="lit-note">The foundational paper establishing that size and book-to-market ratio explain the cross-section of expected returns — the direct academic basis for the Value factor.</div>
+      </div>
+      <div class="lit-entry">
+        <div class="lit-authors">Jegadeesh, N., &amp; Titman, S. (1993)</div>
+        <div class="lit-title"><em>Returns to Buying Winners and Selling Losers.</em> <span style="color:var(--ink-faint);">The Journal of Finance, 48(1), 65–91.</span></div>
+        <div class="lit-note">The seminal paper establishing price momentum as a persistent anomaly. Documents that stocks with strong 3–12 month past returns continue to outperform — the core motivation for the Momentum factor.</div>
+      </div>
+      <div class="lit-entry">
+        <div class="lit-authors">Frazzini, A., &amp; Pedersen, L. H. (2014)</div>
+        <div class="lit-title"><em>Betting Against Beta.</em> <span style="color:var(--ink-faint);">Journal of Financial Economics, 111(1), 1–23.</span></div>
+        <div class="lit-note">Introduces the BAB factor and the leverage-constrained investor framework. The BAB scaling methodology used in this project to construct beta-neutral portfolios follows directly from this paper.</div>
+      </div>
+      <div class="lit-entry">
+        <div class="lit-authors">Asness, C. S., Frazzini, A., &amp; Pedersen, L. H. (2019)</div>
+        <div class="lit-title"><em>Quality Minus Junk.</em> <span style="color:var(--ink-faint);">Review of Accounting Studies, 24(1), 34–112.</span></div>
+        <div class="lit-note">Defines and validates the Quality factor using profitability, growth, safety, and payout metrics. The composite scoring approach — ROE, ROA, accruals, FCF — is closely aligned with the QMJ framework from this paper.</div>
+      </div>
+      <div class="lit-entry">
+        <div class="lit-authors">MSCI Inc. (2021)</div>
+        <div class="lit-title"><em>MSCI Global Investable Market Indexes Methodology.</em> <span style="color:var(--ink-faint);">MSCI Index Methodology Documentation, February 2021.</span></div>
+        <div class="lit-note">The official MSCI documentation for factor index construction — sector-neutral z-scoring, winsorisation, and composite score aggregation. The scoring methodology in this project follows the MSCI specification as closely as available data permits.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span class="footer__copy">© 2025 Daros Nakai</span>
+  <ul class="footer__links">
+    <li><a href="../index.html#projects">Research</a></li>
+    <li><a href="https://github.com/darosnakai" target="_blank" rel="noopener">GitHub</a></li>
+    <li><a href="https://www.linkedin.com/in/darosnakai/" target="_blank" rel="noopener">LinkedIn</a></li>
+  </ul>
+</footer>
+
+<script>
+// ── DATA URLS ──
+const BASE='https://raw.githubusercontent.com/darosnakai/portfolio/main/data/factor_investing/';
+const URLS={value_ret:BASE+'f_value_returns.csv',value_sub:BASE+'f_value_subfactors.csv',mom_ret:BASE+'f_momentum_returns.csv',mom_sub:BASE+'f_momentum_subfactors.csv',qual_ret:BASE+'f_quality_returns.csv',qual_sub:BASE+'f_quality_subfactors.csv',sp500:BASE+'sp500_monthly_returns.csv'};
+
+function parseCSV(text){const lines=text.trim().split('\n');const headers=lines[0].split(',').map(h=>h.trim());return lines.slice(1).map(line=>{const vals=line.split(',');const obj={};headers.forEach((h,i)=>{obj[h]=vals[i]?vals[i].trim():'';});return obj;});}
+async function fetchCSV(url){const r=await fetch(url);if(!r.ok)throw new Error(`HTTP ${r.status}: ${url}`);return parseCSV(await r.text());}
+
+// ── STATS ──
+function annReturn(rets){return(rets.reduce((a,b)=>a+b,0)/rets.length)*12;}
+function annVol(rets){const m=rets.reduce((a,b)=>a+b,0)/rets.length;return Math.sqrt(rets.reduce((a,b)=>a+(b-m)**2,0)/rets.length)*Math.sqrt(12);}
+function sharpe(rets){const r=annReturn(rets),v=annVol(rets);return v>0?r/v:0;}
+function maxDD(rets){let peak=1,nav=1,dd=0;for(const r of rets){nav*=(1+r);if(nav>peak)peak=nav;dd=Math.min(dd,nav/peak-1);}return dd;}
+function cumNav(rets){let nav=1;return rets.map(r=>{nav*=(1+r);return nav;});}
+function rollingSharpe(rets,w=12){return rets.map((_,i)=>{if(i<w-1)return null;const s=rets.slice(i-w+1,i+1);return sharpe(s);});}
+function correlation(a,b){const n=a.length,ma=a.reduce((x,y)=>x+y,0)/n,mb=b.reduce((x,y)=>x+y,0)/n;let num=0,da=0,db=0;for(let i=0;i<n;i++){num+=(a[i]-ma)*(b[i]-mb);da+=(a[i]-ma)**2;db+=(b[i]-mb)**2;}return num/Math.sqrt(da*db);}
+function fmt(n,pct=true){if(n===null||n===undefined||isNaN(n))return'—';return pct?(n*100).toFixed(1)+'%':n.toFixed(2);}
+
+// ── CHART DEFAULTS ──
+const C={value:'#9aafcc',momentum:'#b8a8cc',quality:'#c8a870',multi:'#7a9e6a',sp500:'#b0a890'};
+Chart.defaults.color='#b0a890';
+Chart.defaults.borderColor='rgba(0,0,0,0.06)';
+Chart.defaults.font.family="'IBM Plex Mono',monospace";
+Chart.defaults.font.size=11;
+
+function baseLineOpts(){
+  return{responsive:true,maintainAspectRatio:true,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{backgroundColor:'#2e2a22',borderColor:'#4a4232',borderWidth:1,titleFont:{family:"'IBM Plex Mono',monospace",size:10},bodyFont:{family:"'IBM Plex Mono',monospace",size:10},padding:10,callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)}`}}},scales:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{maxTicksLimit:10,color:'#b0a890'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#b0a890'}}}};
+}
+
+let DATA={};
+let CUM_CHART,DD_CHART,RS_CHART;
+let logScale=false;
+const seriesVisible={cum:{multi:true,value:true,momentum:true,quality:true,sp500:true}};
+
+async function loadAll(){
+  try{
+    const [vr,vs,mr,ms,qr,qs,sp]=await Promise.all([fetchCSV(URLS.value_ret),fetchCSV(URLS.value_sub),fetchCSV(URLS.mom_ret),fetchCSV(URLS.mom_sub),fetchCSV(URLS.qual_ret),fetchCSV(URLS.qual_sub),fetchCSV(URLS.sp500)]);
+    const parse=(rows,dateCol,retCol)=>rows.filter(r=>r[dateCol]&&r[retCol]&&r[retCol]!=='').map(r=>({date:r[dateCol].substring(0,7),ret:parseFloat(r[retCol])})).filter(r=>!isNaN(r.ret));
+    const val=parse(vr,'date','F_Value'),mom=parse(mr,'date','long_ret'),qual=parse(qr,'date','F_Quality'),spx=parse(sp,'date',sp[0]?Object.keys(sp[0]).find(k=>k!=='date'):'sp500_ret');
+    const sets=[val,mom,qual,spx].map(s=>new Set(s.map(r=>r.date)));
+    const common=[...sets[0]].filter(d=>sets.every(s=>s.has(d))).sort();
+    const filter=(series,dates)=>{const map=Object.fromEntries(series.map(r=>[r.date,r.ret]));return dates.map(d=>map[d]??null).filter(v=>v!==null);};
+    const filterDates=(series,dates)=>{const map=Object.fromEntries(series.map(r=>[r.date,r.ret]));return dates.filter(d=>map[d]!==undefined&&map[d]!==null);};
+    const vRets=filter(val,common),mRets=filter(mom,common),qRets=filter(qual,common),sRets=filter(spx,common);
+    const multiRets=vRets.map((v,i)=>(v+mRets[i]+qRets[i])/3);
+    const labels=filterDates(val,common);
+    DATA={labels,vRets,mRets,qRets,sRets,multiRets,vs,ms,qs};
+    buildKPIs();buildCumChart();buildDDChart();buildRSChart();buildSubFactorCharts();buildCorrelation();buildFactorKPIs();
+  }catch(e){
+    console.error(e);
+    document.getElementById('cum-loading').style.display='none';
+    const err=document.getElementById('cum-error');err.style.display='block';
+    err.textContent=`Data could not be loaded. Error: ${e.message}`;
+    document.getElementById('dd-loading').style.display='none';
+    document.getElementById('rs-loading').style.display='none';
+  }
+}
+
+function buildKPIs(){
+  const{multiRets}=DATA;
+  document.getElementById('kpi-ret').textContent=fmt(annReturn(multiRets));
+  document.getElementById('kpi-sharpe').textContent=fmt(sharpe(multiRets),false);
+  document.getElementById('kpi-dd').textContent=fmt(maxDD(multiRets));
+  document.getElementById('kpi-vol').textContent=fmt(annVol(multiRets));
+  document.getElementById('kpi-period').textContent='Jan/06–Dec/25';
+}
+
+function buildFactorKPIs(){
+  const{vRets,mRets,qRets}=DATA;
+  const setKPI=(prefix,rets)=>{
+    document.getElementById(prefix+'-ret').textContent=fmt(annReturn(rets));
+    document.getElementById(prefix+'-sharpe').textContent=fmt(sharpe(rets),false);
+    document.getElementById(prefix+'-dd').textContent=fmt(maxDD(rets));
+    document.getElementById(prefix+'-vol').textContent=fmt(annVol(rets));
+  };
+  setKPI('v',vRets);setKPI('m',mRets);setKPI('q',qRets);
+}
+
+function buildCumChart(){
+  const{labels,vRets,mRets,qRets,sRets,multiRets}=DATA;
+  document.getElementById('cum-loading').style.display='none';
+  const canvas=document.getElementById('cum-chart');canvas.style.display='block';
+  const opts=baseLineOpts();
+  opts.scales.y.ticks.callback=v=>v.toFixed(1)+'×';
+  CUM_CHART=new Chart(canvas,{type:'line',data:{labels,datasets:[
+    {label:'Multi-Factor',data:cumNav(multiRets),borderColor:C.multi,backgroundColor:'rgba(122,158,106,0.06)',fill:true,borderWidth:2.5,pointRadius:0,tension:.3},
+    {label:'Value',data:cumNav(vRets),borderColor:C.value,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.3},
+    {label:'Momentum',data:cumNav(mRets),borderColor:C.momentum,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.3},
+    {label:'Quality',data:cumNav(qRets),borderColor:C.quality,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.3},
+    {label:'S&P 500',data:cumNav(sRets),borderColor:C.sp500,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.3,borderDash:[4,3]},
+  ]},options:opts});
+  // Init toggle styles
+  document.querySelectorAll('.tog-btn[data-series]').forEach(btn=>{
+    const key=btn.dataset.series;if(key&&C[key])btn.style.background=C[key];
+  });
+}
+
+function buildDDChart(){
+  const{labels,vRets,mRets,qRets,sRets,multiRets}=DATA;
+  document.getElementById('dd-loading').style.display='none';
+  const canvas=document.getElementById('dd-chart');canvas.style.display='block';
+  const dd=rets=>{let peak=1,nav=1;return rets.map(r=>{nav*=(1+r);if(nav>peak)peak=nav;return(nav/peak-1)*100;});};
+  const opts=baseLineOpts();opts.scales.y.ticks.callback=v=>v.toFixed(0)+'%';
+  DD_CHART=new Chart(canvas,{type:'line',data:{labels,datasets:[
+    {label:'Multi-Factor',data:dd(multiRets),borderColor:C.multi,fill:true,backgroundColor:'rgba(122,158,106,0.05)',borderWidth:2,pointRadius:0,tension:.3},
+    {label:'Value',data:dd(vRets),borderColor:C.value,backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+    {label:'Momentum',data:dd(mRets),borderColor:C.momentum,backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+    {label:'Quality',data:dd(qRets),borderColor:C.quality,backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+    {label:'S&P 500',data:dd(sRets),borderColor:C.sp500,backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3,borderDash:[4,3]},
+  ]},options:opts});
+}
+
+function buildRSChart(){
+  const{labels,vRets,mRets,qRets}=DATA;
+  document.getElementById('rs-loading').style.display='none';
+  const canvas=document.getElementById('rs-chart');canvas.style.display='block';
+  const opts=baseLineOpts();opts.scales.y.ticks.callback=v=>v.toFixed(1);
+  RS_CHART=new Chart(canvas,{type:'line',data:{labels,datasets:[
+    {label:'Value',data:rollingSharpe(vRets),borderColor:C.value,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.4,spanGaps:true},
+    {label:'Momentum',data:rollingSharpe(mRets),borderColor:C.momentum,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.4,spanGaps:true},
+    {label:'Quality',data:rollingSharpe(qRets),borderColor:C.quality,backgroundColor:'transparent',borderWidth:1.8,pointRadius:0,tension:.4,spanGaps:true},
+  ]},options:opts});
+}
+
+function buildSubFactorCharts(){
+  const{vs,ms,qs}=DATA;
+  function buildBar(canvasId,rows,labelCol,retCol){
+    const canvas=document.getElementById(canvasId);if(!canvas)return;
+    const filtered=rows.filter(r=>r[retCol]&&r[retCol]!=='').map(r=>({label:r[labelCol]||r[Object.keys(r)[0]],val:parseFloat(r[retCol])*100})).filter(r=>!isNaN(r.val));
+    new Chart(canvas,{type:'bar',data:{labels:filtered.map(r=>r.label),datasets:[{data:filtered.map(r=>r.val),backgroundColor:filtered.map(r=>r.val>=0?'rgba(122,158,106,0.7)':'rgba(138,74,58,0.7)'),borderColor:filtered.map(r=>r.val>=0?'#7a9e6a':'#8a4a3a'),borderWidth:1,borderRadius:3}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{backgroundColor:'#2e2a22',borderColor:'#4a4232',borderWidth:1,callbacks:{label:ctx=>` ${ctx.parsed.y.toFixed(1)}%`}}},scales:{x:{grid:{display:false},ticks:{color:'#b0a890',font:{size:10}}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#b0a890',callback:v=>v.toFixed(1)+'%'}}}}});
+  }
+  buildBar('vsub-chart',vs,'subfactor','ann_ret');
+  buildBar('msub-chart',ms,'subfactor','ann_ret');
+  buildBar('qsub-chart',qs,'subfactor','ann_ret');
+}
+
+function buildCorrelation(){
+  const{vRets,mRets,qRets,sRets}=DATA;
+  const series=[{label:'Value',rets:vRets},{label:'Momentum',rets:mRets},{label:'Quality',rets:qRets},{label:'S&P 500',rets:sRets}];
+  const container=document.getElementById('corr-container');
+  let html=`<div style="display:grid;grid-template-columns:80px repeat(4,1fr);gap:2px;font-family:'IBM Plex Mono',monospace;font-size:11px;">`;
+  html+=`<div></div>`;
+  series.forEach(s=>{html+=`<div style="padding:8px 4px;text-align:center;font-size:10px;color:var(--ink-faint);letter-spacing:.06em;">${s.label}</div>`;});
+  series.forEach((si,i)=>{
+    html+=`<div style="padding:8px 4px;color:var(--ink-dim);font-size:10px;letter-spacing:.06em;display:flex;align-items:center;">${si.label}</div>`;
+    series.forEach((sj,j)=>{
+      const corr=correlation(si.rets,sj.rets),abs=Math.abs(corr);
+      let bg,tc;
+      if(i===j){bg='rgba(0,0,0,0.04)';tc='var(--ink-dim)';}
+      else if(corr>0){bg=`rgba(154,175,204,${abs*0.5})`;tc=abs>0.5?'var(--ink)':'var(--ink-mid)';}
+      else{bg=`rgba(138,74,58,${abs*0.5})`;tc=abs>0.5?'var(--ink)':'var(--ink-mid)';}
+      html+=`<div style="padding:10px 4px;text-align:center;background:${bg};border-radius:3px;color:${tc};font-weight:${abs>0.4?500:400};">${i===j?'1.00':corr.toFixed(2)}</div>`;
+    });
+  });
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+function toggleSeries(chart,key,btn){
+  if(chart==='cum'&&CUM_CHART){
+    const map={multi:0,value:1,momentum:2,quality:3,sp500:4};
+    const ds=CUM_CHART.data.datasets[map[key]];
+    const vis=!seriesVisible.cum[key];seriesVisible.cum[key]=vis;
+    ds.hidden=!vis;CUM_CHART.update();
+    btn.classList.toggle('active',vis);
+    if(vis)btn.style.background=C[key];else btn.style.background='transparent';
+  }
+}
+function toggleLog(){
+  if(!CUM_CHART)return;logScale=!logScale;
+  CUM_CHART.options.scales.y.type=logScale?'logarithmic':'linear';
+  CUM_CHART.update();document.getElementById('log-toggle').classList.toggle('active',logScale);
+}
+function switchFactor(name,btn){
+  document.querySelectorAll('.factor-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.factor-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');document.getElementById('panel-'+name).classList.add('active');
+}
+function toggleSection(btn){
+  btn.classList.toggle('open');btn.nextElementSibling.classList.toggle('open');
+}
+
+// SCROLL REVEAL
+const revealObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+// i18n
+const STRINGS={
+  en:{nav_cur:'Factor Investing',nav_back:'← Research',meta_left:'Systematic Asset Pricing · Factor Investing',meta_right:'S&P 500 Universe · 2005–2026 · Monthly Rebalancing',eyebrow:'Quantitative Equity Strategy',title:'Long-Short Factor<br>Investing Strategy',abstract:'A market-neutral long-short equity strategy built on three academically-grounded risk premia — Value, Momentum, and Quality — constructed from scratch on the S&P 500 universe using MSCI-aligned composite scoring, sector-neutral z-scores, and Betting-Against-Beta (BAB) portfolio construction. Each factor is validated independently and combined into a multi-factor portfolio benchmarked against the S&P 500, with monthly rebalancing.',disclaimer:'<strong>Research disclaimer.</strong> All results are backtested on historical data. No transaction costs, borrowing costs, or market impact are modelled. Results are not indicative of future performance and do not constitute investment advice.'},
+  pt:{nav_cur:'Investimento em Fatores',nav_back:'← Pesquisa',meta_left:'Precificação Sistemática · Investimento em Fatores',meta_right:'Universo S&P 500 · 2005–2026 · Rebalanceamento Mensal',eyebrow:'Estratégia Quantitativa de Ações',title:'Estratégia Long-Short<br>de Investimento em Fatores',abstract:'Uma estratégia long-short neutra ao mercado construída sobre três prêmios de risco — Valor, Momentum e Qualidade — desenvolvida no universo do S&P 500 com pontuação composta alinhada à MSCI, z-scores neutros por setor e construção BAB. Cada fator é validado de forma independente e combinado em um portfólio multifator comparado ao S&P 500, com rebalanceamento mensal.',disclaimer:'<strong>Aviso de pesquisa.</strong> Todos os resultados são baseados em backtests sobre dados históricos. Não são modelados custos de transação, custos de empréstimo ou impacto de mercado. Os resultados não são indicativos de desempenho futuro e não constituem aconselhamento de investimento.'}
+};
+function setLang(lang,btn){document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.dataset.i18n;if(STRINGS[lang]?.[key]!==undefined)el.innerHTML=STRINGS[lang][key];});document.documentElement.lang=lang==='pt'?'pt-BR':'en';}
+(function(){const p=new URLSearchParams(window.location.search);if(p.get('lang')==='pt')setLang('pt',document.querySelector('.lang-btn:last-child'));})();
+
+loadAll();
+</script>
+</body>
+</html>

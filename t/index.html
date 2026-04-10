@@ -11,7 +11,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
-<link rel="icon" type="image/png" href="projects/favicon_dn.png" />
+<link rel="icon" type="image/png" href="projects-t/favicon_dn.png" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
   --bg:         #0a0a0f;
@@ -271,6 +272,25 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
 .footer__links a { font-family:var(--mono); font-size:11px; color:var(--text-faint); text-decoration:none; letter-spacing:.08em; transition:color var(--tr); }
 .footer__links a:hover { color:var(--a1); }
 
+
+/* ── STRATEGY SHOWCASE ── */
+.strat__kpis { display:grid; grid-template-columns:repeat(5,1fr); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:24px; }
+.strat__kpi { padding:20px 18px; border-right:1px solid var(--border); background:var(--bg2); }
+.strat__kpi:last-child { border-right:none; }
+.strat__kpi-val { font-family:var(--sans); font-size:clamp(14px,1.6vw,20px); font-weight:800; color:var(--a1); line-height:1.2; margin-bottom:5px; letter-spacing:-.01em; }
+.strat__kpi-lbl { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--text); margin-bottom:2px; }
+.strat__kpi-sub { font-family:var(--mono); font-size:9px; color:var(--text-faint); }
+.strat__chart-wrap { background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius); padding:22px 26px; transition:border-color var(--tr); }
+.strat__chart-wrap:hover { border-color:var(--border-hi); }
+.strat__chart-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:12px; }
+.strat__chart-title { font-size:15px; font-weight:700; letter-spacing:-.01em; color:var(--text); margin-bottom:3px; }
+.strat__chart-sub { font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+.strat__legend { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.strat__leg-item { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; color:var(--text-dim); }
+.strat__leg-dot { display:inline-block; width:22px; height:2px; border-radius:1px; flex-shrink:0; }
+.strat__leg-dot--dash { background:repeating-linear-gradient(90deg,#888899 0,#888899 4px,transparent 4px,transparent 7px) !important; }
+@media(max-width:1000px) { .strat__kpis { grid-template-columns:repeat(3,1fr); } }
+
 /* ANIMATIONS */
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
 @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
@@ -346,6 +366,47 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
     </div>
   </section>
 
+  <!-- STRATEGY SHOWCASE -->
+  <section id="strategy" class="section reveal" style="padding-top:72px;">
+    <div class="section__eyebrow">Featured Strategy</div>
+    <h2 class="section__title">Long-Short Factor Strategy</h2>
+    <p class="section__subtitle">A market-neutral equity strategy harvesting Value, Momentum &amp; Quality risk premia on the S&amp;P 500 universe — backtested 2005 to 2026.</p>
+
+    <div class="strat__kpis">
+      <div class="strat__kpi"><div class="strat__kpi-val" id="s-ret">—</div><div class="strat__kpi-lbl">Ann. Return</div><div class="strat__kpi-sub">Multi-Factor</div></div>
+      <div class="strat__kpi"><div class="strat__kpi-val" id="s-sharpe">—</div><div class="strat__kpi-lbl">Sharpe Ratio</div><div class="strat__kpi-sub">Annualised</div></div>
+      <div class="strat__kpi"><div class="strat__kpi-val" id="s-dd">—</div><div class="strat__kpi-lbl">Max Drawdown</div><div class="strat__kpi-sub">Peak-to-trough</div></div>
+      <div class="strat__kpi"><div class="strat__kpi-val" id="s-vol">—</div><div class="strat__kpi-lbl">Ann. Volatility</div><div class="strat__kpi-sub">Multi-Factor</div></div>
+      <div class="strat__kpi"><div class="strat__kpi-val">2006–2025</div><div class="strat__kpi-lbl">Backtest Period</div><div class="strat__kpi-sub">Monthly rebalancing</div></div>
+    </div>
+
+    <div class="strat__chart-wrap">
+      <div class="strat__chart-header">
+        <div>
+          <div class="strat__chart-title">Cumulative Return</div>
+          <div class="strat__chart-sub">Indexed to 1 at start · Long-short · Monthly rebalancing</div>
+        </div>
+        <div class="strat__legend">
+          <span class="strat__leg-item"><span class="strat__leg-dot" style="background:#5cf0b0;"></span>Multi-Factor</span>
+          <span class="strat__leg-item"><span class="strat__leg-dot" style="background:#6eb5ff;"></span>Value</span>
+          <span class="strat__leg-item"><span class="strat__leg-dot" style="background:#c97bff;"></span>Momentum</span>
+          <span class="strat__leg-item"><span class="strat__leg-dot" style="background:#ffb347;"></span>Quality</span>
+          <span class="strat__leg-item"><span class="strat__leg-dot strat__leg-dot--dash"></span>S&amp;P 500</span>
+        </div>
+      </div>
+      <div style="position:relative;height:280px;">
+        <div id="strat-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.1em;">Loading strategy data…</span>
+        </div>
+        <canvas id="strat-cum-chart" style="display:none;"></canvas>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;text-align:right;">
+      <a href="projects-t/factor-investing.html" class="btn btn--ghost" style="font-size:10px;">Full Strategy Report ↗</a>
+    </div>
+  </section>
+
   <!-- PROJECTS -->
   <section id="projects" class="section reveal">
     <div class="section__eyebrow" data-i18n="projects_eyebrow">Selected Work</div>
@@ -353,7 +414,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
     <p class="section__subtitle" data-i18n="projects_sub">Quantitative research and machine learning projects focused on financial markets and macroeconomic forecasting.</p>
     <div class="projects-grid">
 
-      <a href="projects/factor-investing.html" class="project-card" style="--card-accent:#c97bff;">
+      <a href="projects-t/factor-investing.html" class="project-card" style="--card-accent:#c97bff;">
         <div class="card__tag-row">
           <span class="card__tag card__tag--violet" data-i18n="card3_tag1">Factor Investing</span>
           <span class="card__tag card__tag--green"  data-i18n="card3_tag2">Long-Short</span>
@@ -372,7 +433,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         </div>
       </a>
 
-      <a href="projects/brazilian-inflation-prediction.html" class="project-card" style="--card-accent:#5cf0b0;">
+      <a href="projects-t/brazilian-inflation-prediction.html" class="project-card" style="--card-accent:#5cf0b0;">
         <div class="card__tag-row">
           <span class="card__tag card__tag--amber"  data-i18n="card1_tag4">Interactive Project</span>
           <span class="card__tag card__tag--violet" data-i18n="card1_tag3">Time Series</span>
@@ -391,7 +452,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
         </div>
       </a>
 
-      <a href="projects/capm-risk-return.html" class="project-card" style="--card-accent:#6eb5ff;">
+      <a href="projects-t/capm-risk-return.html" class="project-card" style="--card-accent:#6eb5ff;">
         <div class="card__tag-row">
           <span class="card__tag card__tag--amber"  data-i18n="card2_tag1">Interactive Tool</span>
           <span class="card__tag card__tag--violet"   data-i18n="card2_tag2">Equities</span>
@@ -421,7 +482,7 @@ footer { position:relative; z-index:1; margin-top:100px; padding:28px 48px; bord
       </div>
       <div class="strip-item">
         <div class="strip-val" data-i18n="strip_v4">Founder &amp; Team Lead — Quant Finance Club</div>
-        <div class="strip-label" data-i18n="strip_l4">Student Research Club</div>
+        <div class="strip-label" data-i18n="strip_l4">Student Invesment Fund</div>
       </div>
       <div class="strip-item">
         <div class="strip-val" data-i18n="strip_v6">Brazil · Germany · Australia · Netherlands</div>
@@ -835,6 +896,97 @@ const secObs = new IntersectionObserver(entries => {
   });
 }, { threshold:0.3 });
 sections.forEach(s => secObs.observe(s));
+
+/* ── FACTOR STRATEGY SHOWCASE CHART ── */
+(function() {
+  const BASE = 'https://raw.githubusercontent.com/darosnakai/portfolio/main/data/factor_investing/';
+  function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim());
+    return lines.slice(1).map(line => {
+      const vals = line.split(','); const obj = {};
+      headers.forEach((h,i) => { obj[h] = vals[i] ? vals[i].trim() : ''; });
+      return obj;
+    });
+  }
+  async function fetchCSV(url) { const r = await fetch(url); if (!r.ok) throw new Error(`HTTP ${r.status}`); return parseCSV(await r.text()); }
+  function cumNav(rets) { let nav=1; return rets.map(r => { nav*=(1+r); return nav; }); }
+  function annReturn(rets) { return (rets.reduce((a,b)=>a+b,0)/rets.length)*12; }
+  function annVol(rets) { const m=rets.reduce((a,b)=>a+b,0)/rets.length; return Math.sqrt(rets.reduce((a,b)=>a+(b-m)**2,0)/rets.length)*Math.sqrt(12); }
+  function sharpe(rets) { const r=annReturn(rets),v=annVol(rets); return v>0?r/v:0; }
+  function maxDD(rets) { let peak=1,nav=1,dd=0; for(const r of rets){nav*=(1+r);if(nav>peak)peak=nav;dd=Math.min(dd,nav/peak-1);} return dd; }
+  function fmt(n,pct=true) { if(n===null||isNaN(n))return'—'; return pct?(n*100).toFixed(1)+'%':n.toFixed(2); }
+
+  async function loadStratChart() {
+    try {
+      const [vr,mr,qr,sp] = await Promise.all([
+        fetchCSV(BASE+'f_value_returns.csv'), fetchCSV(BASE+'f_momentum_returns.csv'),
+        fetchCSV(BASE+'f_quality_returns.csv'), fetchCSV(BASE+'sp500_monthly_returns.csv'),
+      ]);
+      const parse = (rows,dateCol,retCol) =>
+        rows.filter(r=>r[dateCol]&&r[retCol]&&r[retCol]!=='').map(r=>({date:r[dateCol].substring(0,7),ret:parseFloat(r[retCol])})).filter(r=>!isNaN(r.ret));
+      const val=parse(vr,'date','F_Value'), mom=parse(mr,'date','long_ret'),
+            qual=parse(qr,'date','F_Quality'), spx=parse(sp,'date',Object.keys(sp[0]).find(k=>k!=='date'));
+      const sets=[val,mom,qual,spx].map(s=>new Set(s.map(r=>r.date)));
+      const common=[...sets[0]].filter(d=>sets.every(s=>s.has(d))).sort();
+      const filter=(series,dates)=>{const map=Object.fromEntries(series.map(r=>[r.date,r.ret]));return dates.map(d=>map[d]??null).filter(v=>v!==null);};
+      const vR=filter(val,common), mR=filter(mom,common), qR=filter(qual,common), sR=filter(spx,common);
+      const multiR=vR.map((v,i)=>(v+mR[i]+qR[i])/3);
+      const thinLabels=common.map((d,i)=>i%24===0?d.substring(0,4):'');
+
+      document.getElementById('s-ret').textContent    = fmt(annReturn(multiR));
+      document.getElementById('s-sharpe').textContent = fmt(sharpe(multiR),false);
+      document.getElementById('s-dd').textContent     = fmt(maxDD(multiR));
+      document.getElementById('s-vol').textContent    = fmt(annVol(multiR));
+
+      document.getElementById('strat-loading').style.display='none';
+      const canvas = document.getElementById('strat-cum-chart');
+      canvas.style.display='block';
+
+      Chart.defaults.font.family="'DM Mono',monospace";
+      Chart.defaults.font.size=10;
+      Chart.defaults.color='#44445a';
+      Chart.defaults.borderColor='rgba(255,255,255,0.05)';
+
+      new Chart(canvas, {
+        type:'line',
+        data:{
+          labels:thinLabels,
+          datasets:[
+            {label:'Multi-Factor',data:cumNav(multiR),borderColor:'#5cf0b0',backgroundColor:'rgba(92,240,176,0.06)',fill:true,borderWidth:2.5,pointRadius:0,tension:.3},
+            {label:'Value',       data:cumNav(vR),    borderColor:'#6eb5ff',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+            {label:'Momentum',    data:cumNav(mR),    borderColor:'#c97bff',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+            {label:'Quality',     data:cumNav(qR),    borderColor:'#ffb347',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+            {label:'S&P 500',     data:cumNav(sR),    borderColor:'#888899',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3,borderDash:[5,3]},
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'rgba(16,16,26,0.95)',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,
+              titleFont:{family:"'DM Mono',monospace",size:10},
+              bodyFont:{family:"'DM Mono',monospace",size:10},
+              padding:10,
+              callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}×`}
+            }
+          },
+          scales:{
+            x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#44445a',maxTicksLimit:8}},
+            y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#44445a',callback:v=>v.toFixed(1)+'×'}}
+          }
+        }
+      });
+    } catch(e) {
+      const el=document.getElementById('strat-loading');
+      if(el) el.innerHTML='<span style="font-family:var(--mono);font-size:10px;color:var(--text-faint);">Chart unavailable — data not yet published</span>';
+    }
+  }
+  loadStratChart();
+})();
+
 </script>
 </body>
 </html>

@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Interactive Equity Risk Dashboard (CAPM-Based) — Daros Nakai</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="favicon_dn.png" />
+<style>
+:root {
+  --bg:         #0a0a0f;
+  --bg2:        #10101a;
+  --bg3:        #16162a;
+  --border:     rgba(255,255,255,0.07);
+  --border-hi:  rgba(255,255,255,0.15);
+  --text:       #e8e8f0;
+  --text-dim:   #888899;
+  --text-faint: #44445a;
+  --a1: #5cf0b0;
+  --a2: #ff6b6b;
+  --a3: #6eb5ff;
+  --a4: #c97bff;
+  --a5: #ffb347;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+  --radius: 12px;
+  --tr: 0.22s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:60px;background:rgba(10,10,15,0.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav__logo{font-family:var(--mono);font-size:13px;color:var(--a1);letter-spacing:.08em;text-decoration:none;}
+.nav__logo span{color:var(--text-dim);}
+.nav__right{display:flex;align-items:center;gap:20px;}
+.nav__back{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color var(--tr);}
+.nav__back:hover{color:var(--a1);}
+.nav__breadcrumb{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.04em;}
+.nav__breadcrumb .sep{margin:0 8px;}
+.nav__breadcrumb .cur{color:var(--text-dim);}
+
+/* ── PAGE ── */
+.page{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:104px 48px 120px;}
+
+/* ── SECTION DIVIDER ── */
+.section-divider{display:flex;align-items:center;gap:14px;margin-bottom:24px;margin-top:48px;}
+.section-divider__title{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-faint);white-space:nowrap;}
+.section-divider__line{flex:1;height:1px;background:var(--border);}
+
+/* ── HEADER ── */
+.header{margin-bottom:48px;}
+.header__meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.header__meta-left{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.1em;text-transform:uppercase;}
+.header__meta-right{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.06em;}
+.header__eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:var(--a3);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.header__eyebrow::before{content:'';display:inline-block;width:28px;height:1px;background:var(--a3);}
+.header__title{font-size:clamp(30px,4.5vw,54px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin-bottom:18px;background:linear-gradient(135deg,#ffffff 0%,var(--a3) 55%,var(--a4) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header__abstract{font-family:var(--mono);font-size:14px;color:var(--text-dim);line-height:1.75;max-width:700px;}
+
+/* ── OVERVIEW CARD ── */
+.overview-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:32px;}
+.overview-card__header{padding:16px 22px;border-bottom:1px solid var(--border);}
+.overview-card__title{font-size:15px;font-weight:700;letter-spacing:-.01em;}
+.overview-card__body{padding:28px;display:grid;grid-template-columns:1fr 1fr;gap:32px;}
+.overview-block-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--a3);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.overview-text{font-family:var(--mono);font-size:14px;color:var(--text-dim);line-height:1.75;}
+.overview-text p{margin-bottom:12px;}
+.overview-text p:last-child{margin-bottom:0;}
+.formula-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:16px 20px;font-family:var(--mono);font-size:14px;color:var(--a3);letter-spacing:.03em;margin-top:10px;text-align:center;}
+.formula-box .formula-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-faint);display:block;margin-bottom:6px;}
+
+/* ── TOOL CARD ── */
+.tool-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:32px;}
+.tool-card__header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.tool-card__title{font-size:15px;font-weight:700;letter-spacing:-.01em;}
+.tool-card__sub{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-top:4px;letter-spacing:.04em;}
+.tool-card__body{padding:28px;}
+
+/* ── CONTROLS ── */
+.controls-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-bottom:24px;}
+.ctrl-block{}
+.ctrl-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;display:block;}
+.pill-group{display:flex;flex-wrap:wrap;gap:7px;}
+.pill{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 12px;border-radius:99px;border:1px solid var(--border-hi);background:transparent;color:var(--text-dim);cursor:pointer;transition:all var(--tr);white-space:nowrap;}
+.pill:hover{border-color:var(--a3);color:var(--text);}
+.pill.active{border-color:var(--a3);color:var(--text);background:color-mix(in srgb,var(--a3) 12%,transparent);}
+
+/* ── TICKER INPUT ── */
+.ticker-input-row{margin-bottom:20px;}
+.ticker-search-wrap{position:relative;}
+.ticker-search-input{width:100%;background:var(--bg3);border:1px solid var(--border-hi);border-radius:8px;padding:10px 16px;font-family:var(--mono);font-size:13px;color:var(--text);outline:none;transition:border-color var(--tr);}
+.ticker-search-input:focus{border-color:var(--a3);}
+.ticker-search-input::placeholder{color:var(--text-faint);}
+.ticker-dropdown-list{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg3);border:1px solid var(--border-hi);border-radius:8px;max-height:220px;overflow-y:auto;z-index:50;display:none;}
+.ticker-dropdown-list.open{display:block;}
+.ticker-option{padding:9px 14px;font-family:var(--mono);font-size:12px;color:var(--text-dim);cursor:pointer;transition:background var(--tr);}
+.ticker-option:hover,.ticker-option.highlighted{background:color-mix(in srgb,var(--a3) 10%,transparent);color:var(--text);}
+.selected-tickers{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;min-height:28px;}
+.ticker-chip{display:flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--a3) 12%,transparent);border:1px solid color-mix(in srgb,var(--a3) 30%,transparent);border-radius:99px;padding:3px 10px 3px 12px;font-family:var(--mono);font-size:11px;color:var(--a3);}
+.ticker-chip__remove{cursor:pointer;color:var(--text-faint);font-size:13px;line-height:1;transition:color var(--tr);}
+.ticker-chip__remove:hover{color:var(--a2);}
+.chip-empty{font-family:var(--mono);font-size:11px;color:var(--text-faint);}
+
+/* ── RUN BUTTON ── */
+.run-btn{display:flex;align-items:center;gap:10px;background:var(--a3);color:#050510;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:11px 24px;border-radius:8px;border:none;cursor:pointer;transition:all .2s ease;margin-top:8px;}
+.run-btn:hover{background:#fff;transform:translateY(-1px);box-shadow:0 8px 24px rgba(110,181,255,0.25);}
+.run-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+.run-btn .spinner{width:14px;height:14px;border:2px solid rgba(5,5,16,0.3);border-top-color:#050510;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.run-btn.loading .spinner{display:block;}
+.run-btn.loading .btn-text{display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ── ERROR / STATUS ── */
+.status-msg{font-family:var(--mono);font-size:12px;color:var(--a2);background:color-mix(in srgb,var(--a2) 8%,transparent);border:1px solid color-mix(in srgb,var(--a2) 20%,transparent);border-radius:8px;padding:12px 16px;margin-top:16px;display:none;}
+.status-msg.visible{display:block;}
+
+/* ── RESULTS SECTION ── */
+.results-section{display:none;}
+.results-section.visible{display:block;}
+
+/* ── STAT PILLS ── */
+.stat-pills{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:28px;}
+.stat-pill{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px 20px;flex:1;min-width:160px;}
+.stat-pill__label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+.stat-pill__val{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text);letter-spacing:-.02em;line-height:1;}
+.stat-pill__sub{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:4px;}
+
+/* ── CHART CARD ── */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:32px;transition:border-color var(--tr);}
+.chart-card:hover{border-color:var(--border-hi);}
+.chart-card__header{padding:18px 22px 14px;border-bottom:1px solid var(--border);}
+.chart-card__title{font-size:15px;font-weight:700;letter-spacing:-.01em;}
+.chart-card__sub{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-top:4px;letter-spacing:.04em;}
+.chart-card__body{padding:24px;}
+
+/* ── RESULTS TABLE ── */
+.results-table-wrap{overflow-x:auto;}
+.results-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;}
+.results-table th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--border-hi);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);font-weight:400;}
+.results-table th:not(:first-child){text-align:right;}
+.results-table td{padding:11px 14px;border-bottom:1px solid var(--border);color:var(--text-dim);}
+.results-table td:not(:first-child){text-align:right;}
+.results-table tr:hover td{background:var(--bg3);}
+.td-ticker{color:var(--text);font-weight:500;display:flex;align-items:center;gap:8px;}
+.td-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.badge{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:99px;margin-left:4px;}
+.badge--hi{color:var(--a1);background:color-mix(in srgb,var(--a1) 12%,transparent);border:1px solid color-mix(in srgb,var(--a1) 25%,transparent);}
+.badge--lo{color:var(--a5);background:color-mix(in srgb,var(--a5) 12%,transparent);border:1px solid color-mix(in srgb,var(--a5) 25%,transparent);}
+.badge--hi-risk{color:var(--a2);background:color-mix(in srgb,var(--a2) 12%,transparent);border:1px solid color-mix(in srgb,var(--a2) 25%,transparent);}
+
+/* ── METHODOLOGY ── */
+.methodology-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:32px;}
+.tech-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 22px;background:transparent;border:none;cursor:pointer;font-family:var(--sans);font-size:15px;font-weight:700;color:var(--text);letter-spacing:-.01em;border-bottom:1px solid var(--border);transition:background var(--tr);}
+.tech-toggle:hover{background:var(--bg3);}
+.tech-toggle-icon{font-family:var(--mono);font-size:18px;color:var(--a3);transition:transform .2s;}
+.tech-toggle.open .tech-toggle-icon{transform:rotate(45deg);}
+.tech-body{display:none;padding:28px;grid-template-columns:1fr 1fr;gap:32px;}
+.tech-body.open{display:grid;}
+/* overview body uses same pattern */
+#capm-overview-body{padding:28px;gap:32px;}
+.tech-block-title{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--a3);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.tech-list{list-style:none;display:flex;flex-direction:column;gap:11px;}
+.tech-list li{font-family:var(--mono);font-size:14px;color:var(--text-dim);line-height:1.6;display:flex;gap:10px;align-items:flex-start;}
+.tech-list li::before{content:'→';color:var(--a3);flex-shrink:0;margin-top:1px;}
+
+/* ── DISCLAIMER ── */
+.disclaimer{background:color-mix(in srgb,var(--a5) 6%,transparent);border:1px solid color-mix(in srgb,var(--a5) 18%,transparent);border-radius:var(--radius);padding:18px 22px;display:flex;gap:12px;align-items:flex-start;margin-bottom:32px;}
+.disclaimer__icon{font-family:var(--mono);font-size:13px;color:var(--a5);flex-shrink:0;padding-top:1px;}
+.disclaimer__text{font-family:var(--mono);font-size:13px;color:#6a6a82;line-height:1.7;}
+.disclaimer__text strong{color:var(--a5);font-weight:500;}
+
+/* ── QUICK ADD PANEL ── */
+.quickadd-panel{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px 20px;margin-bottom:20px;}
+.quickadd-tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:12px;}
+.quickadd-tab{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:5px 14px;border-radius:99px;border:1px solid var(--border-hi);background:transparent;color:var(--text-dim);cursor:pointer;transition:all var(--tr);}
+.quickadd-tab:hover{color:var(--text);border-color:var(--a3);}
+.quickadd-tab.active{background:var(--a3);border-color:var(--a3);color:#050510;font-weight:500;}
+.quickadd-content{display:flex;flex-direction:column;gap:12px;}
+.qa-group{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.qa-group-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;min-width:160px;}
+.pill--sm{font-size:10px;padding:3px 9px;}
+.tab-row{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;}
+.tab-btn{font-family:var(--mono);font-size:10px;letter-spacing:.06em;padding:5px 14px;border-radius:99px;border:1px solid var(--border-hi);background:transparent;color:var(--text-dim);cursor:pointer;transition:all var(--tr);}
+.tab-btn:hover{border-color:var(--a3);color:var(--text);}
+.tab-btn.active{color:#050510;font-weight:500;}
+
+/* ── SCATTER LEGEND ── */
+.scatter-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--text-dim);}
+.scatter-legend__item{display:flex;align-items:center;gap:6px;}
+.scatter-legend__dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.scatter-legend__line{width:22px;height:2px;border-top:2px dashed rgba(255,255,255,0.35);flex-shrink:0;}
+
+/* ── LANG TOGGLE ── */
+.lang-toggle{display:flex;border:1px solid var(--border-hi);border-radius:6px;overflow:hidden;}
+.lang-btn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:5px 11px;border:none;background:transparent;color:var(--text-faint);cursor:pointer;transition:all var(--tr);}
+.lang-btn.active{background:var(--a1);color:#000;font-weight:500;}
+.lang-btn:not(.active):hover{color:var(--text);background:var(--border);}
+
+@media(max-width:900px){
+  #bar-charts-grid{grid-template-columns:1fr!important;}
+}
+@media(max-width:768px){
+  nav{padding:0 20px;}.nav__breadcrumb{display:none;}
+  .page{padding:88px 20px 80px;}
+  .overview-card__body{grid-template-columns:1fr;}
+  .controls-grid{grid-template-columns:1fr;}
+  .chart-card__body{padding:16px;}
+  .tech-body{grid-template-columns:1fr;}
+  .stat-pills{flex-direction:column;}
+}
+
+/* ══ FINANCE THEME OVERRIDE ══ */
+:root{--bg:#faf8f3!important;--bg2:#f3f0e8!important;--bg3:#eceae0!important;--ink:#0f0f0f;--ink-mid:#3a3530;--ink-dim:#7a7060;--ink-faint:#b0a890;--rule:#dedad0;--rule-hi:#c8c0a8;--gold:#9a7c3a;--gold-light:#c8a85a;--border:var(--rule)!important;--border-hi:var(--rule-hi)!important;--text:var(--ink)!important;--text-dim:var(--ink-dim)!important;--text-faint:var(--ink-faint)!important;--a1:var(--gold)!important;--a2:#8a4a3a!important;--a3:#4a6888!important;--a4:#7a5a88!important;--a5:#8a7040!important;--serif:'Playfair Display',Georgia,serif;--sans-fi:'DM Sans',sans-serif;--mono:'IBM Plex Mono',monospace!important;}
+body{background:#faf8f3!important;color:#0f0f0f!important;}
+body::before{background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")!important;background-size:200px 200px!important;opacity:.015!important;}
+nav{background:rgba(250,248,243,0.92)!important;border-bottom:1px solid #dedad0!important;}
+.nav__logo{font-family:'Playfair Display',Georgia,serif!important;font-size:16px!important;font-weight:600!important;color:#0f0f0f!important;}
+.nav__logo span{display:none!important;}
+.nav__back{color:#7a7060!important;}
+.nav__back:hover{color:#9a7c3a!important;}
+.lang-btn.active{background:#0f0f0f!important;color:#faf8f3!important;}
+.lang-btn:not(.active):hover{background:#eceae0!important;color:#0f0f0f!important;}
+.header__title{background:none!important;-webkit-text-fill-color:#0f0f0f!important;font-family:'Playfair Display',Georgia,serif!important;font-weight:700!important;letter-spacing:-.01em!important;}
+.header__eyebrow{color:#9a7c3a!important;}
+.header__eyebrow::before{background:#9a7c3a!important;}
+.header__abstract{font-family:'DM Sans',sans-serif!important;color:#3a3530!important;}
+.section-divider__title{color:#9a7c3a!important;}
+.section-divider__line{background:#dedad0!important;}
+.chart-card,.tech-card,.overview-card,.methodology-card,.tool-card{background:#f3f0e8!important;border-color:#dedad0!important;}
+.chart-card__title{font-family:'Playfair Display',Georgia,serif!important;font-weight:600!important;color:#0f0f0f!important;}
+.chart-card__sub{color:#b0a890!important;}
+.kpi-val{font-family:'Playfair Display',Georgia,serif!important;color:#9a7c3a!important;}
+.kpi-val.neg{color:#8a4a3a!important;}
+.kpi-label{color:#0f0f0f!important;}
+.kpi-sub{color:#b0a890!important;}
+.tech-toggle{font-family:'Playfair Display',Georgia,serif!important;font-weight:600!important;color:#0f0f0f!important;}
+.tech-toggle:hover{background:#eceae0!important;}
+.tech-toggle-icon{color:#9a7c3a!important;}
+.tech-block-title{color:#9a7c3a!important;border-bottom-color:#dedad0!important;}
+.tech-list li{color:#7a7060!important;font-family:'DM Sans',sans-serif!important;}
+.tech-list li::before{color:#9a7c3a!important;content:'—'!important;}
+.lit-authors{color:#9a7c3a!important;}
+.lit-title{color:#0f0f0f!important;}
+.lit-note{color:#7a7060!important;}
+.lit-entry{border-bottom-color:#dedad0!important;}
+.pill{border-color:#c8c0a8!important;color:#7a7060!important;}
+.pill.active{color:#0f0f0f!important;}
+.results-table th{color:#b0a890!important;border-bottom-color:#c8c0a8!important;}
+.results-table td{color:#7a7060!important;border-bottom-color:#dedad0!important;}
+.results-table tr:hover td{background:#eceae0!important;}
+.stat-pill{background:#eceae0!important;border-color:#dedad0!important;}
+.stat-pill__label{color:#b0a890!important;}
+.stat-pill__val{color:#0f0f0f!important;}
+.stat-pill__sub{color:#7a7060!important;}
+.ticker-search-input{background:#eceae0!important;border-color:#c8c0a8!important;color:#0f0f0f!important;}
+.ticker-search-input::placeholder{color:#b0a890!important;}
+.ticker-search-input:focus{border-color:#9a7c3a!important;}
+.ticker-dropdown-list{background:#eceae0!important;border-color:#c8c0a8!important;}
+.ticker-option{color:#7a7060!important;}
+.ticker-option:hover,.ticker-option.highlighted{background:rgba(154,124,58,0.1)!important;color:#0f0f0f!important;}
+.ticker-chip{background:rgba(154,124,58,0.1)!important;border-color:rgba(154,124,58,0.3)!important;color:#9a7c3a!important;}
+.badge--hi{color:#9a7c3a!important;background:rgba(154,124,58,0.1)!important;border-color:rgba(154,124,58,0.25)!important;}
+.badge--lo{color:#8a7040!important;background:rgba(138,112,64,0.1)!important;}
+.badge--hi-risk{color:#8a4a3a!important;background:rgba(138,74,58,0.1)!important;}
+.run-btn{background:#0f0f0f!important;color:#faf8f3!important;}
+.run-btn:hover{background:#3a3530!important;box-shadow:none!important;}
+.quickadd-panel{background:#eceae0!important;border-color:#dedad0!important;}
+.quickadd-tab.active{background:#0f0f0f!important;border-color:#0f0f0f!important;color:#faf8f3!important;}
+.tab-btn.active{color:#faf8f3!important;background:#0f0f0f!important;}
+.scatter-legend{color:#7a7060!important;}
+footer{border-top-color:#dedad0!important;}
+footer span,footer a{color:#b0a890!important;}
+footer a:hover{color:#9a7c3a!important;}
+
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav__logo">DN<span>.portfolio</span></a>
+  <div class="nav__right">
+    <a href="../index.html" class="nav__back" data-i18n="nav_back">← Back</a>
+    <div class="nav__breadcrumb">
+      <span data-i18n="nav_projects">Projects</span>
+      <span class="sep">/</span>
+      <span class="cur" data-i18n="nav_current">CAPM Risk-Return</span>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
+      <button class="lang-btn"        onclick="setLang('pt',this)">PT</button>
+    </div>
+  </div>
+</nav>
+
+<main class="page">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__meta">
+      <span class="header__meta-left" data-i18n="header_meta_left">Quantitative Finance · Risk Analysis</span>
+      <span class="header__meta-right" data-i18n="header_meta_right">Interactive Tool — Live Data</span>
+    </div>
+    <div class="header__eyebrow" data-i18n="header_eyebrow">CAPM · Beta · Risk-Return · Equity Analytics</div>
+    <h1 class="header__title" data-i18n="header_title">Interactive Equity Risk<br>Dashboard (CAPM-Based)</h1>
+    <p class="header__abstract" data-i18n="header_abstract">
+      Select any S&amp;P 500 constituents, choose your lookback window, and compute each stock's
+      beta, Jensen's alpha, Sharpe and Treynor ratios — live, in the browser.
+      Data sourced from Yahoo Finance and EODHD API.
+    </p>
+  </header>
+
+  <!-- OVERVIEW -->
+  <div class="section-divider"><span class="section-divider__title" data-i18n="div_model">01 — The Model</span><div class="section-divider__line"></div></div>
+
+  <div class="methodology-card" style="margin-bottom:32px;">
+    <button class="tech-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+      <span data-i18n="overview_dropdown_title">What is CAPM (Capital Asset Pricing Model)?</span>
+      <span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body" style="grid-template-columns:1fr 1fr;" id="capm-overview-body">
+      <div>
+        <div class="overview-block-title" data-i18n="overview_what_title">What is CAPM?</div>
+        <div class="overview-text">
+          <p data-i18n="overview_p1">CAPM is a foundational model in finance that links an asset's expected return to its systematic risk (beta) relative to a market index.</p>
+          <p data-i18n="overview_p2">The model decomposes risk into <strong style="color:var(--text)">systematic</strong> (market-wide, non-diversifiable) and <strong style="color:var(--text)">idiosyncratic</strong> (firm-specific, diversifiable). CAPM rewards only systematic risk.</p>
+          <p data-i18n="overview_p3">Beta measures sensitivity to market movements: β=1 moves with the market, β&gt;1 amplifies it, β&lt;1 dampens it.</p>
+        </div>
+      </div>
+      <div>
+        <div class="overview-block-title" data-i18n="overview_formula_title">Formula &amp; Parameters</div>
+        <div class="formula-box">
+          <span class="formula-label" data-i18n="overview_formula_label">CAPM Formula</span>
+          E(r<sub>A</sub>) = r<sub>f</sub> + β<sub>A</sub> × (E(r<sub>m</sub>) − r<sub>f</sub>)
+        </div>
+        <div class="overview-text" style="margin-top:16px;">
+          <p data-i18n="overview_beta"><strong style="color:var(--a3)">β<sub>A</sub></strong> — Computed as Cov(r<sub>A</sub>, r<sub>m</sub>) / Var(r<sub>m</sub>) over the selected period</p>
+          <p data-i18n="overview_rf"><strong style="color:var(--a3)">r<sub>f</sub></strong> — 10-year U.S. Treasury yield (~4.2% p.a. → converted to monthly)</p>
+          <p data-i18n="overview_rm"><strong style="color:var(--a3)">E(r<sub>m</sub>)</strong> — Historical arithmetic mean return of S&amp;P 500 over the selected window</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOL -->
+  <div class="section-divider"><span class="section-divider__title" data-i18n="div_tool">02 — Interactive Tool</span><div class="section-divider__line"></div></div>
+
+  <div class="tool-card">
+    <div class="tool-card__header">
+      <div>
+        <div class="tool-card__title" data-i18n="tool_title">Configure &amp; Run Analysis</div>
+        <div class="tool-card__sub" data-i18n="tool_sub">Data loaded from GitHub · Monthly returns · Computed entirely in-browser</div>
+      </div>
+    </div>
+    <div class="tool-card__body">
+
+      <!-- Loading bar -->
+      <div id="load-bar-wrap" style="display:none;margin-bottom:20px;">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-bottom:8px;" id="load-msg" data-i18n="load_msg">Loading market data…</div>
+        <div style="background:var(--bg3);border-radius:99px;height:3px;overflow:hidden;">
+          <div id="load-bar-inner" style="height:100%;width:0%;background:var(--a3);border-radius:99px;transition:width .4s ease;"></div>
+        </div>
+      </div>
+
+      <!-- Controls (disabled until data loads) -->
+      <div id="tool-controls" style="opacity:0.4;pointer-events:none;transition:opacity .3s ease;">
+
+      <!-- Period + RF -->
+      <div class="controls-grid">
+        <div class="ctrl-block">
+          <span class="ctrl-label" data-i18n="ctrl_period">Period</span>
+          <div class="pill-group" id="period-pills">
+            <button class="pill" data-val="1y" data-i18n="period_1y">1 Year</button>
+            <button class="pill" data-val="2y" data-i18n="period_2y">2 Years</button>
+            <button class="pill" data-val="3y" data-i18n="period_3y">3 Years</button>
+            <button class="pill active" data-val="5y" data-i18n="period_5y">5 Years</button>
+            <button class="pill" data-val="10y" data-i18n="period_10y">10 Years</button>
+            <button class="pill" data-val="all" data-i18n="period_all">All History</button>
+          </div>
+        </div>
+        <div class="ctrl-block">
+          <span class="ctrl-label" data-i18n="ctrl_rf">Risk-Free Rate (annual)</span>
+          <div class="pill-group" id="rf-pills">
+            <button class="pill" data-val="0.038">3.8%</button>
+            <button class="pill active" data-val="0.042">4.2%</button>
+            <button class="pill" data-val="0.045">4.5%</button>
+            <button class="pill" data-val="0.05">5.0%</button>
+          </div>
+        </div>
+        <div class="ctrl-block">
+          <span class="ctrl-label" data-i18n="ctrl_interval">Return Interval</span>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--text-dim);padding:6px 0;">
+            <span data-i18n="ctrl_interval_val">Monthly</span> <span style="color:var(--text-dim);font-size:11px;" data-i18n="ctrl_interval_note">— fixed (pre-built dataset)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ticker selector -->
+      <div class="ticker-input-row">
+        <span class="ctrl-label" data-i18n="ctrl_tickers">Search &amp; Select Tickers (S&amp;P 500)</span>
+        <div class="ticker-search-wrap">
+          <input type="text" class="ticker-search-input" id="ticker-search" placeholder="Loading data…" autocomplete="off" disabled/>
+          <div class="ticker-dropdown-list" id="ticker-dropdown"></div>
+        </div>
+        <div class="selected-tickers" id="selected-tickers">
+          <span class="chip-empty" data-i18n="no_tickers">No tickers selected yet</span>
+        </div>
+        <p style="font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-top:10px;line-height:1.6;" data-i18n="quickadd_hint">Curate your own portfolio using the search above, or select one of the pre-defined portfolios below:</p>
+      </div>
+
+      <!-- Quick Add Panel -->
+      <div class="quickadd-panel" style="padding:0;">
+
+        <!-- Dropdown header -->
+        <button class="tech-toggle" style="border-bottom:none;border-radius:10px;" id="quickadd-toggle-btn"
+          onclick="
+            const body=document.getElementById('quickadd-body');
+            const open=body.style.display==='block';
+            body.style.display=open?'none':'block';
+            this.classList.toggle('open',!open);
+          ">
+          <span data-i18n="quickadd_panel_title">Pre-defined Portfolios &amp; Sectors</span>
+          <span class="tech-toggle-icon" style="color:var(--a3);">+</span>
+        </button>
+
+        <div id="quickadd-body" style="display:none;padding:18px 20px 20px;">
+        <!-- Tab row -->
+        <div class="quickadd-tabs">
+          <button class="quickadd-tab active" onclick="switchQuickTab('portfolios', this)" data-i18n="qa_tab_portfolios">Portfolios</button>
+          <button class="quickadd-tab" onclick="switchQuickTab('sectors', this)" data-i18n="qa_tab_sectors">Sectors</button>
+        </div>
+
+        <!-- Portfolios -->
+        <div class="quickadd-content" id="qa-portfolios">
+          <div class="qa-group">
+            <span class="qa-group-label">Mag 7</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('AAPL')">AAPL</button>
+              <button class="pill pill--sm" onclick="quickAdd('MSFT')">MSFT</button>
+              <button class="pill pill--sm" onclick="quickAdd('NVDA')">NVDA</button>
+              <button class="pill pill--sm" onclick="quickAdd('AMZN')">AMZN</button>
+              <button class="pill pill--sm" onclick="quickAdd('GOOGL')">GOOGL</button>
+              <button class="pill pill--sm" onclick="quickAdd('META')">META</button>
+              <button class="pill pill--sm" onclick="quickAdd('TSLA')">TSLA</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label" data-i18n="qa_defensive">Defensive / Low Beta</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['JNJ','KO','PG','WMT','VZ','MCD','PEP','CL'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('JNJ')">JNJ</button>
+              <button class="pill pill--sm" onclick="quickAdd('KO')">KO</button>
+              <button class="pill pill--sm" onclick="quickAdd('PG')">PG</button>
+              <button class="pill pill--sm" onclick="quickAdd('WMT')">WMT</button>
+              <button class="pill pill--sm" onclick="quickAdd('VZ')">VZ</button>
+              <button class="pill pill--sm" onclick="quickAdd('MCD')">MCD</button>
+              <button class="pill pill--sm" onclick="quickAdd('PEP')">PEP</button>
+              <button class="pill pill--sm" onclick="quickAdd('CL')">CL</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label" data-i18n="qa_highbeta">High Beta / Growth</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['NVDA','TSLA','PLTR','CRWD','MSTR','SMCI','ENPH','MRNA'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('NVDA')">NVDA</button>
+              <button class="pill pill--sm" onclick="quickAdd('TSLA')">TSLA</button>
+              <button class="pill pill--sm" onclick="quickAdd('PLTR')">PLTR</button>
+              <button class="pill pill--sm" onclick="quickAdd('CRWD')">CRWD</button>
+              <button class="pill pill--sm" onclick="quickAdd('SMCI')">SMCI</button>
+              <button class="pill pill--sm" onclick="quickAdd('ENPH')">ENPH</button>
+              <button class="pill pill--sm" onclick="quickAdd('MRNA')">MRNA</button>
+              <button class="pill pill--sm" onclick="quickAdd('AXON')">AXON</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label">Financials</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['JPM','GS','BAC','MS','BLK','BX','SCHW','V'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('JPM')">JPM</button>
+              <button class="pill pill--sm" onclick="quickAdd('GS')">GS</button>
+              <button class="pill pill--sm" onclick="quickAdd('BAC')">BAC</button>
+              <button class="pill pill--sm" onclick="quickAdd('MS')">MS</button>
+              <button class="pill pill--sm" onclick="quickAdd('BLK')">BLK</button>
+              <button class="pill pill--sm" onclick="quickAdd('BX')">BX</button>
+              <button class="pill pill--sm" onclick="quickAdd('SCHW')">SCHW</button>
+              <button class="pill pill--sm" onclick="quickAdd('V')">V</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label" data-i18n="qa_value">Value / Dividend</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['XOM','CVX','BRK.B','UNH','LLY','ABBV','MO','T'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('XOM')">XOM</button>
+              <button class="pill pill--sm" onclick="quickAdd('CVX')">CVX</button>
+              <button class="pill pill--sm" onclick="quickAdd('UNH')">UNH</button>
+              <button class="pill pill--sm" onclick="quickAdd('LLY')">LLY</button>
+              <button class="pill pill--sm" onclick="quickAdd('ABBV')">ABBV</button>
+              <button class="pill pill--sm" onclick="quickAdd('MO')">MO</button>
+              <button class="pill pill--sm" onclick="quickAdd('T')">T</button>
+              <button class="pill pill--sm" onclick="quickAdd('IBM')">IBM</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sectors -->
+        <div class="quickadd-content" id="qa-sectors" style="display:none;">
+          <div class="qa-group">
+            <span class="qa-group-label">Technology</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['AAPL','MSFT','NVDA','AVGO','AMD','INTC','ORCL','ADBE'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('AAPL')">AAPL</button>
+              <button class="pill pill--sm" onclick="quickAdd('MSFT')">MSFT</button>
+              <button class="pill pill--sm" onclick="quickAdd('NVDA')">NVDA</button>
+              <button class="pill pill--sm" onclick="quickAdd('AVGO')">AVGO</button>
+              <button class="pill pill--sm" onclick="quickAdd('AMD')">AMD</button>
+              <button class="pill pill--sm" onclick="quickAdd('INTC')">INTC</button>
+              <button class="pill pill--sm" onclick="quickAdd('ORCL')">ORCL</button>
+              <button class="pill pill--sm" onclick="quickAdd('ADBE')">ADBE</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label">Healthcare</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['UNH','LLY','JNJ','ABBV','MRK','TMO','ABT','ISRG'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('UNH')">UNH</button>
+              <button class="pill pill--sm" onclick="quickAdd('LLY')">LLY</button>
+              <button class="pill pill--sm" onclick="quickAdd('JNJ')">JNJ</button>
+              <button class="pill pill--sm" onclick="quickAdd('ABBV')">ABBV</button>
+              <button class="pill pill--sm" onclick="quickAdd('MRK')">MRK</button>
+              <button class="pill pill--sm" onclick="quickAdd('TMO')">TMO</button>
+              <button class="pill pill--sm" onclick="quickAdd('ABT')">ABT</button>
+              <button class="pill pill--sm" onclick="quickAdd('ISRG')">ISRG</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label" data-i18n="qa_consumer_disc">Consumer Discretionary</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['AMZN','TSLA','MCD','NKE','SBUX','TGT','BKNG','LOW'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('AMZN')">AMZN</button>
+              <button class="pill pill--sm" onclick="quickAdd('TSLA')">TSLA</button>
+              <button class="pill pill--sm" onclick="quickAdd('MCD')">MCD</button>
+              <button class="pill pill--sm" onclick="quickAdd('NKE')">NKE</button>
+              <button class="pill pill--sm" onclick="quickAdd('SBUX')">SBUX</button>
+              <button class="pill pill--sm" onclick="quickAdd('TGT')">TGT</button>
+              <button class="pill pill--sm" onclick="quickAdd('BKNG')">BKNG</button>
+              <button class="pill pill--sm" onclick="quickAdd('LOW')">LOW</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label">Energy</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['XOM','CVX','COP','SLB','EOG','MPC','PSX','OXY'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('XOM')">XOM</button>
+              <button class="pill pill--sm" onclick="quickAdd('CVX')">CVX</button>
+              <button class="pill pill--sm" onclick="quickAdd('COP')">COP</button>
+              <button class="pill pill--sm" onclick="quickAdd('SLB')">SLB</button>
+              <button class="pill pill--sm" onclick="quickAdd('EOG')">EOG</button>
+              <button class="pill pill--sm" onclick="quickAdd('MPC')">MPC</button>
+              <button class="pill pill--sm" onclick="quickAdd('PSX')">PSX</button>
+              <button class="pill pill--sm" onclick="quickAdd('OXY')">OXY</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label">Utilities</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['NEE','DUK','SO','D','AEP','EXC','SRE','ED'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('NEE')">NEE</button>
+              <button class="pill pill--sm" onclick="quickAdd('DUK')">DUK</button>
+              <button class="pill pill--sm" onclick="quickAdd('SO')">SO</button>
+              <button class="pill pill--sm" onclick="quickAdd('D')">D</button>
+              <button class="pill pill--sm" onclick="quickAdd('AEP')">AEP</button>
+              <button class="pill pill--sm" onclick="quickAdd('EXC')">EXC</button>
+              <button class="pill pill--sm" onclick="quickAdd('SRE')">SRE</button>
+              <button class="pill pill--sm" onclick="quickAdd('ED')">ED</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label">Industrials</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['CAT','HON','GE','RTX','UPS','DE','BA','LMT'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('CAT')">CAT</button>
+              <button class="pill pill--sm" onclick="quickAdd('HON')">HON</button>
+              <button class="pill pill--sm" onclick="quickAdd('GE')">GE</button>
+              <button class="pill pill--sm" onclick="quickAdd('RTX')">RTX</button>
+              <button class="pill pill--sm" onclick="quickAdd('UPS')">UPS</button>
+              <button class="pill pill--sm" onclick="quickAdd('DE')">DE</button>
+              <button class="pill pill--sm" onclick="quickAdd('BA')">BA</button>
+              <button class="pill pill--sm" onclick="quickAdd('LMT')">LMT</button>
+            </div>
+          </div>
+          <div class="qa-group">
+            <span class="qa-group-label" data-i18n="qa_consumer_staples">Consumer Staples</span>
+            <div class="pill-group">
+              <button class="pill" onclick="quickAddGroup(['WMT','KO','PG','COST','PEP','MO','CL','KMB'])">Add All</button>
+              <button class="pill pill--sm" onclick="quickAdd('WMT')">WMT</button>
+              <button class="pill pill--sm" onclick="quickAdd('KO')">KO</button>
+              <button class="pill pill--sm" onclick="quickAdd('PG')">PG</button>
+              <button class="pill pill--sm" onclick="quickAdd('COST')">COST</button>
+              <button class="pill pill--sm" onclick="quickAdd('PEP')">PEP</button>
+              <button class="pill pill--sm" onclick="quickAdd('MO')">MO</button>
+              <button class="pill pill--sm" onclick="quickAdd('CL')">CL</button>
+              <button class="pill pill--sm" onclick="quickAdd('KMB')">KMB</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clear button -->
+        <div style="margin-top:14px;">
+          <button class="pill" style="border-color:var(--a2);color:var(--a2);" onclick="clearTickers()" data-i18n="btn_clear">✕ Clear All</button>
+        </div>
+
+        </div><!-- end quickadd-body -->
+      </div><!-- end quickadd-panel -->
+
+      <button class="run-btn" id="run-btn" onclick="runAnalysis()" disabled>
+        <span class="btn-text" data-i18n="btn_run">Run Analysis</span>
+        <span class="spinner"></span>
+      </button>
+
+      </div><!-- end tool-controls -->
+
+      <div class="status-msg" id="status-msg"></div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-section" id="results-section">
+
+    <div class="section-divider"><span class="section-divider__title" data-i18n="div_results">03 — Results</span><div class="section-divider__line"></div></div>
+
+    <!-- Summary stat pills -->
+    <div class="stat-pills" id="stat-pills"></div>
+
+    <!-- ① Beta vs CAPM Expected Return (SML) -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <div class="chart-card__title" data-i18n="chart_sml_title">Beta vs. CAPM Expected Return</div>
+        <div class="chart-card__sub" data-i18n="chart_sml_sub">Each point = one stock · Dashed line = Security Market Line (SML)</div>
+      </div>
+      <div class="chart-card__body">
+        <div style="position:relative;height:400px;">
+          <canvas id="scatter-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- CAPM Interpretation Guide -->
+    <div class="methodology-card" style="margin-bottom:32px;">
+      <button class="tech-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span data-i18n="interp_guide_title">CAPM Model Interpretation Guide</span>
+        <span class="tech-toggle-icon">+</span>
+      </button>
+      <div class="tech-body" style="grid-template-columns:1fr 1fr;">
+        <div>
+          <div class="tech-block-title" data-i18n="sml_title">Reading the Security Market Line</div>
+          <ul class="tech-list">
+            <li data-i18n="sml_l1">The dashed SML represents the CAPM-predicted return for every level of beta. Any stock lying exactly on the line has zero alpha — it earns exactly what its systematic risk warrants.</li>
+            <li data-i18n="sml_l2"><strong style="color:var(--a1)">Above the SML</strong> — the stock has generated more return than CAPM predicts for its beta. This positive alpha suggests outperformance that CAPM alone cannot explain.</li>
+            <li data-i18n="sml_l3"><strong style="color:var(--a2)">Below the SML</strong> — the stock underperformed relative to its risk level. Negative alpha means investors were not adequately compensated for the systematic risk taken.</li>
+            <li data-i18n="sml_l4">The slope of the SML equals the market risk premium: E(rm) − rf. A steeper SML means higher reward per unit of beta in the selected period.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="tech-block-title" data-i18n="beta_title">Understanding Beta &amp; CAPM Limitations</div>
+          <ul class="tech-list">
+            <li data-i18n="beta_l1"><strong style="color:var(--a3)">β &lt; 1</strong> — defensive stock, less volatile than the market. Utilities and Consumer Staples typically cluster here.</li>
+            <li data-i18n="beta_l2"><strong style="color:var(--a3)">β = 1</strong> — moves in lockstep with the S&amp;P 500. The market itself has β = 1 by definition.</li>
+            <li data-i18n="beta_l3"><strong style="color:var(--a3)">β &gt; 1</strong> — aggressive stock, amplifies market moves. High-growth tech tends to sit here.</li>
+            <li data-i18n="beta_l4">CAPM assumes historical beta persists — it does not. It also ignores liquidity, size, value and momentum factors, which is why non-zero alphas are common and expected in practice.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② Full Results Table -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <div class="chart-card__title" data-i18n="table_title">Full Results Table</div>
+        <div class="chart-card__sub" data-i18n="table_sub">Beta · Jensen's Alpha · Sharpe · Treynor · R² — sorted by Beta desc</div>
+      </div>
+      <div class="chart-card__body">
+        <div class="results-table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th data-i18n="th_beta">Beta (β)</th>
+                <th data-i18n="th_er_m">E(r) Monthly</th>
+                <th data-i18n="th_er_a">E(r) Annual</th>
+                <th data-i18n="th_alpha">Jensen's α Annual</th>
+                <th data-i18n="th_sharpe">Sharpe Ratio</th>
+                <th data-i18n="th_treynor">Treynor Ratio</th>
+                <th>R²</th>
+                <th data-i18n="th_class">Class</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ Excess Returns Scatter Plots (one per ticker) -->
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <div class="chart-card__title" data-i18n="excess_title">Excess Return Scatter Plots</div>
+        <div class="chart-card__sub" data-i18n="excess_sub">Monthly excess returns vs. S&P 500 excess returns · OLS regression line · β = slope, α = intercept</div>
+      </div>
+      <div class="chart-card__body">
+        <div id="excess-scatter-tabs" class="tab-row"></div>
+        <div style="position:relative;height:260px;">
+          <canvas id="excess-scatter-chart"></canvas>
+        </div>
+        <div id="excess-scatter-legend" class="scatter-legend"></div>
+      </div>
+    </div>
+
+    <!-- ④ Bar Charts: Jensen's Alpha / Treynor / Sharpe -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;" id="bar-charts-grid">
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card__header">
+          <div class="chart-card__title" data-i18n="alpha_title">Jensen's Alpha</div>
+          <div class="chart-card__sub" data-i18n="alpha_sub">Annualised · α &gt; 0 = outperforms market</div>
+        </div>
+        <div class="chart-card__body"><div style="position:relative;height:260px;"><canvas id="alpha-bar-chart"></canvas></div></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card__header">
+          <div class="chart-card__title" data-i18n="treynor_title">Treynor Ratio</div>
+          <div class="chart-card__sub" data-i18n="treynor_sub">Excess return per unit of systematic risk (β)</div>
+        </div>
+        <div class="chart-card__body"><div style="position:relative;height:260px;"><canvas id="treynor-bar-chart"></canvas></div></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card__header">
+          <div class="chart-card__title" data-i18n="sharpe_title">Sharpe Ratio</div>
+          <div class="chart-card__sub" data-i18n="sharpe_sub">Excess return per unit of total risk (σ)</div>
+        </div>
+        <div class="chart-card__body"><div style="position:relative;height:260px;"><canvas id="sharpe-bar-chart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- How to Interpret These Metrics -->
+    <div class="methodology-card" style="margin-bottom:32px;">
+      <button class="tech-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span data-i18n="metrics_guide_title">How to Interpret These Metrics</span>
+        <span class="tech-toggle-icon">+</span>
+      </button>
+      <div class="tech-body" style="grid-template-columns:1fr 1fr 1fr;">
+        <div>
+          <div class="tech-block-title" data-i18n="alpha_guide_title">Jensen's Alpha (α)</div>
+          <ul class="tech-list">
+            <li data-i18n="alpha_g1">Alpha is the y-intercept of the OLS regression line fitted to excess returns. It represents the return the stock generates when the market return equals zero — i.e. pure outperformance beyond what beta predicts.</li>
+            <li data-i18n="alpha_g2"><strong style="color:var(--a1)">Positive α</strong> — the stock consistently outperformed what CAPM expected given its risk. The stock generated excess returns not explained by its market exposure.</li>
+            <li data-i18n="alpha_g3"><strong style="color:var(--a2)">Negative α</strong> — the stock underdelivered relative to its risk level. CAPM over-predicted performance, suggesting company-specific headwinds.</li>
+            <li data-i18n="alpha_g4">A non-zero alpha means CAPM is insufficient to fully explain this stock's returns — other factors (value, momentum, quality) are likely at play.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="tech-block-title" data-i18n="treynor_guide_title">Treynor Ratio</div>
+          <ul class="tech-list">
+            <li data-i18n="treynor_g1">Treynor = (mean excess return × 12) / β. It measures how much annualised excess return an asset delivers per unit of systematic risk (beta).</li>
+            <li data-i18n="treynor_g2">Unlike Sharpe, Treynor ignores idiosyncratic (diversifiable) risk. It is most meaningful for assets held as part of a diversified portfolio, where unsystematic risk is already eliminated.</li>
+            <li data-i18n="treynor_g3"><strong style="color:var(--a1)">Higher Treynor</strong> — more return per unit of market risk. Better risk-adjusted performance relative to systematic exposure.</li>
+            <li data-i18n="treynor_g4">Comparing Treynor across stocks tells you which generates the best return for the same amount of market sensitivity — useful for portfolio construction.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="tech-block-title" data-i18n="sharpe_guide_title">Sharpe Ratio</div>
+          <ul class="tech-list">
+            <li data-i18n="sharpe_g1">Sharpe = (mean excess return / σ of excess returns) × √12. It measures return per unit of total risk — both systematic and idiosyncratic.</li>
+            <li data-i18n="sharpe_g2">Unlike Treynor, Sharpe penalises all volatility, making it ideal for evaluating standalone positions or concentrated portfolios where diversification is limited.</li>
+            <li data-i18n="sharpe_g3"><strong style="color:var(--a1)">Higher Sharpe</strong> — more return per unit of overall price volatility. The investment compensates investors well for the turbulence endured.</li>
+            <li data-i18n="sharpe_g4">A Sharpe above 1.0 is generally considered good; above 2.0 is excellent. Negative Sharpe means the asset underperformed the risk-free rate on a risk-adjusted basis.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ Rolling CAPM -->
+    <div class="chart-card" id="rolling-card">
+      <div class="chart-card__header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div class="chart-card__title" data-i18n="rolling_title">Rolling CAPM Analysis</div>
+          <div class="chart-card__sub" data-i18n="rolling_sub">Rolling Beta · Rolling Alpha · Rolling R² — configurable window</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <div>
+            <span class="ctrl-label" style="margin-bottom:6px;" data-i18n="rolling_ticker_label">Ticker</span>
+            <div class="pill-group" id="rolling-ticker-pills"></div>
+          </div>
+          <div>
+            <span class="ctrl-label" style="margin-bottom:6px;" data-i18n="rolling_window_label">Window</span>
+            <div class="pill-group" id="rolling-window-pills">
+              <button class="pill" data-val="6">6m</button>
+              <button class="pill active" data-val="12">12m</button>
+              <button class="pill" data-val="24">24m</button>
+              <button class="pill" data-val="36">36m</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-card__body">
+        <div style="display:grid;grid-template-columns:1fr;gap:24px;">
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--a3);margin-bottom:8px;">Rolling Beta (β)</div>
+            <div style="position:relative;height:160px;"><canvas id="rolling-beta-chart"></canvas></div>
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--a1);margin-bottom:8px;">Rolling Alpha (α) — monthly %</div>
+            <div style="position:relative;height:160px;"><canvas id="rolling-alpha-chart"></canvas></div>
+          </div>
+          <div>
+            <div style="font-family:var(--mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--a4);margin-bottom:8px;">Rolling R²</div>
+            <div style="position:relative;height:160px;"><canvas id="rolling-r2-chart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Understanding Rolling Window Analysis -->
+    <div class="methodology-card" style="margin-bottom:32px;">
+      <button class="tech-toggle" onclick="this.classList.toggle('open');this.nextElementSibling.classList.toggle('open')">
+        <span data-i18n="rolling_guide_title">Understanding Rolling Window Analysis</span>
+        <span class="tech-toggle-icon">+</span>
+      </button>
+      <div class="tech-body" style="grid-template-columns:1fr 1fr 1fr;">
+        <div>
+          <div class="tech-block-title" data-i18n="rolling_beta_title">Rolling Beta (β)</div>
+          <ul class="tech-list">
+            <li data-i18n="rbeta_l1">Rather than computing one beta over the entire period, rolling beta calculates it repeatedly over a sliding window (e.g. the last 12 months), then moves one month forward and repeats.</li>
+            <li data-i18n="rbeta_l2">This reveals how a stock's sensitivity to market movements evolves over time — something a static beta completely hides.</li>
+            <li data-i18n="rbeta_l3">A rising rolling beta means the stock is becoming more correlated with the market — possibly due to macro regime changes, increased leverage, or sector rotation.</li>
+            <li data-i18n="rbeta_l4">A falling rolling beta may signal the stock is decoupling from the market — driven by company-specific catalysts, defensive repositioning, or idiosyncratic events.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="tech-block-title" data-i18n="rolling_alpha_title">Rolling Alpha (α)</div>
+          <ul class="tech-list">
+            <li data-i18n="ralpha_l1">Rolling alpha tracks the OLS intercept over each window — the period-specific excess return above what beta-adjusted CAPM would predict.</li>
+            <li data-i18n="ralpha_l2">Sustained positive rolling alpha over multiple windows suggests persistent outperformance that CAPM cannot explain — a strong signal of value creation beyond market exposure.</li>
+            <li data-i18n="ralpha_l3">Periods of sharp negative alpha often coincide with company-specific crises, earnings misses, or sector-wide stress that disproportionately hurt this stock versus the market.</li>
+            <li data-i18n="ralpha_l4">The dashed reference line at α = 0 represents the CAPM theoretical ideal. Most stocks oscillate around it over time.</li>
+          </ul>
+        </div>
+        <div>
+          <div class="tech-block-title" data-i18n="rolling_r2_title">Rolling R²</div>
+          <ul class="tech-list">
+            <li data-i18n="rr2_l1">R² measures the proportion of the stock's return variance explained by market movements in each window. Range: 0 (no correlation) to 1 (perfectly explained by market).</li>
+            <li data-i18n="rr2_l2"><strong style="color:var(--a1)">High R²</strong> — the stock is behaving like the market. Systematic risk dominates; idiosyncratic factors are minimal in this period.</li>
+            <li data-i18n="rr2_l3"><strong style="color:var(--a2)">Low R²</strong> — company-specific factors are driving returns more than the market is. CAPM explains little of this stock's behaviour in this window.</li>
+            <li data-i18n="rr2_l4">A declining R² often precedes periods of high alpha (positive or negative) — as CAPM loses explanatory power, stock-specific events take over.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- METHODOLOGY -->
+  <div class="section-divider"><span class="section-divider__title" data-i18n="div_methodology">04 — Methodology</span><div class="section-divider__line"></div></div>
+
+  <div class="methodology-card">
+    <button class="tech-toggle" id="methodology-toggle" onclick="toggleMethodology()">
+      <span data-i18n="methodology_title">Methodology &amp; Technical Details</span>
+      <span class="tech-toggle-icon">+</span>
+    </button>
+    <div class="tech-body" id="methodology-body">
+      <div>
+        <div class="tech-block-title" data-i18n="method_data_title">Data &amp; Computation</div>
+        <ul class="tech-list">
+          <li data-i18n="method_d1">Monthly adjusted closes pre-processed from a 500MB HDF5 file into a lean ~4MB JSON, hosted on GitHub and fetched once on page load — no API calls needed</li>
+          <li data-i18n="method_d2">Returns computed as month-over-month percentage change in adjusted closes</li>
+          <li data-i18n="method_d3">Beta via OLS on excess returns: β = Cov(ri − rf, rm − rf) / Var(rm − rf), matching the statsmodels OLS approach in the original Python app</li>
+          <li data-i18n="method_d4">Jensen's Alpha = OLS y-intercept (α) × 12 — annualised excess return when the market return equals zero</li>
+          <li data-i18n="method_d5">Sharpe = (mean excess return / σ of excess returns) × √12 · Treynor = (mean excess return × 12) / β</li>
+          <li data-i18n="method_d6">Rolling CAPM uses a sliding window of configurable size (6–36 months) recomputing β, α and R² at each step</li>
+          <li data-i18n="method_d7">Outliers removed with the IQR method (×1.5 fence) before OLS regression — mirrors the original Python implementation</li>
+        </ul>
+      </div>
+      <div>
+        <div class="tech-block-title" data-i18n="method_assumptions_title">Assumptions &amp; Limitations</div>
+        <ul class="tech-list">
+          <li data-i18n="method_a1">Risk-free rate is manually set; the tool uses a fixed annual rate converted to the matching interval</li>
+          <li data-i18n="method_a2">CAPM is a single-factor model — idiosyncratic risk, liquidity, and macro factors are not captured</li>
+          <li data-i18n="method_a3">Historical beta is backward-looking; it may not reflect current or future market sensitivity</li>
+          <li data-i18n="method_a4">Data quality depends on Yahoo Finance's API response; missing data is handled by forward-filling the last available close</li>
+          <li data-i18n="method_a5">This tool is for educational purposes — not investment advice</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <span class="disclaimer__icon">⚠</span>
+    <div class="disclaimer__text" data-i18n="disclaimer">
+      <strong>Educational use only.</strong> All results are derived from publicly available historical data. This tool does not constitute financial advice. Past returns do not guarantee future performance. Always consult a qualified financial professional before making investment decisions.
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ─── CONFIG ─── */
+const DATA_URL     = 'https://raw.githubusercontent.com/darosnakai/CAPM-Analysis-Tool/main/capm_monthly.json';
+const MARKET_TICKER = 'GSPC';
+
+/* ─── STATE ─── */
+let capmData         = null;
+let availableTickers = [];
+let selectedTickers  = [];
+let activePeriod     = '5y';
+let activeRf         = 0.042;
+
+// Chart instances
+let smlChart        = null;
+let excessChart     = null;
+let alphaChart      = null;
+let treynorChart    = null;
+let sharpeChart     = null;
+let rollingBetaChart  = null;
+let rollingAlphaChart = null;
+let rollingR2Chart    = null;
+
+// Per-run computed data (used by rolling & excess tabs)
+let lastResults      = [];
+let activeExcessTicker = null;
+let activeRollingTicker = null;
+let activeRollingWindow = 12;
+
+const ACCENT_COLORS = ['#6eb5ff','#5cf0b0','#c97bff','#ffb347','#ff6b6b','#f06fff','#4ade80','#fb923c','#a78bfa','#34d399'];
+const PERIOD_MONTHS = { '1y':12,'2y':24,'3y':36,'5y':60,'10y':120,'all':Infinity };
+
+/* ═══════════════════════════════════════════════
+   DATA LOADING
+═══════════════════════════════════════════════ */
+async function loadData() {
+  const bar = document.getElementById('load-bar-inner');
+  const loadWrap = document.getElementById('load-bar-wrap');
+  const loadMsg  = document.getElementById('load-msg');
+  loadWrap.style.display = 'block';
+  loadMsg.textContent    = 'Loading market data…';
+  bar.style.width        = '15%';
+  const urls = [
+    DATA_URL,
+    DATA_URL.replace('https://raw.githubusercontent.com','https://cdn.jsdelivr.net/gh').replace('/main/','/main@latest/')
+  ];
+  let lastErr = null;
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url, { mode: 'cors' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      bar.style.width = '60%';
+      const json = await resp.json();
+      bar.style.width = '85%';
+      capmData = json;
+      availableTickers = Object.keys(json).filter(k => k !== '_meta').sort();
+      bar.style.width = '100%';
+      setTimeout(() => {
+        loadWrap.style.display = 'none';
+        loadMsg.textContent    = '';
+        document.getElementById('tool-controls').style.opacity = '1';
+        document.getElementById('tool-controls').style.pointerEvents = 'auto';
+        document.getElementById('run-btn').disabled = false;
+      }, 300);
+      initTickerSearch();
+      // Pre-select Mag 7 without auto-running analysis
+      setTimeout(() => {
+        quickAddGroup(['AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA']);
+      }, 400);
+      return;
+    } catch(e) {
+      lastErr = e;
+      bar.style.width = '30%';
+    }
+  }
+  bar.style.background = 'var(--a2)';
+  bar.style.width = '100%';
+  loadMsg.style.color = 'var(--a2)';
+  loadMsg.textContent = `Failed to load data: ${lastErr?.message}. Please refresh or check your connection.`;
+}
+
+/* ─── PILLS ─── */
+document.querySelectorAll('#period-pills .pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#period-pills .pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); activePeriod = btn.dataset.val;
+  });
+});
+document.querySelectorAll('#rf-pills .pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#rf-pills .pill').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); activeRf = parseFloat(btn.dataset.val);
+  });
+});
+
+/* ─── TICKER SEARCH ─── */
+function initTickerSearch() {
+  const input = document.getElementById('ticker-search');
+  const list  = document.getElementById('ticker-dropdown');
+  let hi = -1;
+  input.disabled = false;
+  input.placeholder = `Search ${availableTickers.length} tickers…`;
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toUpperCase();
+    if (!q) { close(); return; }
+    const m = availableTickers.filter(t=>t.includes(q)&&!selectedTickers.includes(t)&&t!==MARKET_TICKER).slice(0,20);
+    if (!m.length) { close(); return; }
+    list.innerHTML = m.map((t,i)=>`<div class="ticker-option" data-t="${t}">${t}</div>`).join('');
+    list.classList.add('open'); hi=-1;
+    list.querySelectorAll('.ticker-option').forEach(el=>el.addEventListener('click',()=>{addTicker(el.dataset.t);close();input.value='';}));
+  });
+  input.addEventListener('keydown', e=>{
+    const opts=list.querySelectorAll('.ticker-option');
+    if(e.key==='ArrowDown'){hi=Math.min(hi+1,opts.length-1);hl(opts);e.preventDefault();}
+    else if(e.key==='ArrowUp'){hi=Math.max(hi-1,0);hl(opts);e.preventDefault();}
+    else if(e.key==='Enter'&&hi>=0){addTicker(opts[hi].dataset.t);close();input.value='';}
+    else if(e.key==='Escape'){close();}
+  });
+  document.addEventListener('click',e=>{if(!e.target.closest('.ticker-search-wrap'))close();});
+  function hl(opts){opts.forEach((el,i)=>el.classList.toggle('highlighted',i===hi));}
+  function close(){list.classList.remove('open');list.innerHTML='';hi=-1;}
+}
+
+function addTicker(t){if(!capmData||!capmData[t]||selectedTickers.includes(t)||selectedTickers.length>=15)return;selectedTickers.push(t);renderChips();}
+function removeTicker(t){selectedTickers=selectedTickers.filter(x=>x!==t);renderChips();}
+function quickAdd(t){if(capmData&&capmData[t]&&!selectedTickers.includes(t)&&selectedTickers.length<15){selectedTickers.push(t);renderChips();}}
+function quickAddGroup(tickers){tickers.forEach(t=>quickAdd(t));}
+function clearTickers(){selectedTickers=[];renderChips();}
+function switchQuickTab(tab, btn){
+  document.querySelectorAll('.quickadd-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('qa-portfolios').style.display = tab==='portfolios'?'flex':'none';
+  document.getElementById('qa-sectors').style.display    = tab==='sectors'?'flex':'none';
+}
+function renderChips(){
+  const c=document.getElementById('selected-tickers');
+  c.innerHTML=selectedTickers.length
+    ? selectedTickers.map(t=>`<div class="ticker-chip">${t}<span class="ticker-chip__remove" onclick="removeTicker('${t}')">✕</span></div>`).join('')
+    : '<span class="chip-empty">No tickers selected yet</span>';
+}
+
+/* ═══════════════════════════════════════════════
+   COMPUTATION HELPERS
+═══════════════════════════════════════════════ */
+function getMonthlyReturns(priceObj, period) {
+  const months = PERIOD_MONTHS[period] ?? 60;
+  const keys   = Object.keys(priceObj).sort();
+  const trimmed = months===Infinity ? keys : keys.slice(-(months+1));
+  const prices  = trimmed.map(k=>priceObj[k]);
+  const rets = [];
+  for(let i=1;i<prices.length;i++){
+    if(prices[i-1]>0&&prices[i]>0) rets.push((prices[i]-prices[i-1])/prices[i-1]);
+  }
+  return rets;
+}
+
+function getMonthlyReturnsSeries(priceObj, period) {
+  // Returns [{date, ret}] array — keeps date labels for rolling charts
+  const months  = PERIOD_MONTHS[period] ?? 60;
+  const keys    = Object.keys(priceObj).sort();
+  const trimmed = months===Infinity ? keys : keys.slice(-(months+1));
+  const prices  = trimmed.map(k=>priceObj[k]);
+  const out = [];
+  for(let i=1;i<prices.length;i++){
+    if(prices[i-1]>0&&prices[i]>0) out.push({date:trimmed[i], ret:(prices[i]-prices[i-1])/prices[i-1]});
+  }
+  return out;
+}
+
+function alignArrays(a, b){
+  const len=Math.min(a.length,b.length);
+  return {stock:a.slice(-len), market:b.slice(-len)};
+}
+
+function computeBeta(sr, mr){
+  const n=sr.length; if(n<6) return null;
+  const mm=mr.reduce((s,v)=>s+v,0)/n, ms=sr.reduce((s,v)=>s+v,0)/n;
+  let cov=0,varM=0;
+  for(let i=0;i<n;i++){cov+=(sr[i]-ms)*(mr[i]-mm);varM+=(mr[i]-mm)**2;}
+  return varM===0?null:cov/varM;
+}
+
+function computeR2(sr, mr){
+  // Pearson r² = (cov/σx·σy)²
+  const n=sr.length; if(n<6) return null;
+  const mm=mr.reduce((s,v)=>s+v,0)/n, ms=sr.reduce((s,v)=>s+v,0)/n;
+  let cov=0,varM=0,varS=0;
+  for(let i=0;i<n;i++){cov+=(sr[i]-ms)*(mr[i]-mm);varM+=(mr[i]-mm)**2;varS+=(sr[i]-ms)**2;}
+  if(varM===0||varS===0) return null;
+  return (cov/Math.sqrt(varM*varS))**2;
+}
+
+/* IQR outlier filter — mirrors the Python app */
+function removeOutliers(arr){
+  const s=[...arr].sort((a,b)=>a-b);
+  const q1=s[Math.floor(s.length*0.25)],q3=s[Math.floor(s.length*0.75)],iqr=q3-q1;
+  const lo=q1-1.5*iqr, hi=q3+1.5*iqr;
+  return arr.map(v=>(v>=lo&&v<=hi)?v:null);
+}
+
+/* ═══════════════════════════════════════════════
+   MAIN ANALYSIS
+═══════════════════════════════════════════════ */
+function runAnalysis(){
+  if(!capmData){showStatus('Data not loaded yet.',true);return;}
+  if(!selectedTickers.length){showStatus('Please select at least one ticker.',true);return;}
+  hideStatus();
+  document.getElementById('results-section').classList.remove('visible');
+
+  const mktPrices = capmData[MARKET_TICKER];
+  if(!mktPrices){showStatus('GSPC market data not found in dataset.',true);return;}
+  const mktRet    = getMonthlyReturns(mktPrices, activePeriod);
+  const mktMean   = mktRet.reduce((s,v)=>s+v,0)/mktRet.length;
+  const rfMonthly = Math.pow(1+activeRf,1/12)-1;
+
+  const results = [];
+  for(let i=0;i<selectedTickers.length;i++){
+    const ticker = selectedTickers[i];
+    const priceObj = capmData[ticker];
+    if(!priceObj){results.push({ticker,beta:null,color:ACCENT_COLORS[i%10]});continue;}
+
+    const stkRet = getMonthlyReturns(priceObj, activePeriod);
+    const {stock:s, market:m} = alignArrays(stkRet, mktRet);
+
+    const beta      = computeBeta(s, m);
+    const r2        = computeR2(s, m);
+    const capmMo    = beta!==null ? (rfMonthly + beta*(mktMean-rfMonthly))*100 : null;
+    const capmAnn   = capmMo!==null ? (Math.pow(1+capmMo/100,12)-1)*100 : null;
+    const avgMo     = s.reduce((a,v)=>a+v,0)/s.length;
+
+    // Excess returns (stock - rf, market - rf) — with IQR filter
+    const sExcess = s.map(v=>(v-rfMonthly)*100);
+    const mExcess = m.map(v=>(v-rfMonthly)*100);
+    const filtS   = removeOutliers(sExcess);
+    const filtM   = removeOutliers(mExcess);
+    // aligned pairs (drop rows where either is null)
+    const excessPairs = [];
+    for(let j=0;j<filtS.length;j++){
+      if(filtS[j]!==null&&filtM[j]!==null) excessPairs.push({x:filtM[j],y:filtS[j]});
+    }
+
+    // OLS on excess pairs — beta from excess returns = same beta, alpha = y-intercept
+    const n2=excessPairs.length;
+    let alpha=null, olsBeta=null, olsR2=null;
+    if(n2>=6){
+      const mx=excessPairs.reduce((a,p)=>a+p.x,0)/n2;
+      const my=excessPairs.reduce((a,p)=>a+p.y,0)/n2;
+      let cov2=0,varX=0;
+      excessPairs.forEach(p=>{cov2+=(p.x-mx)*(p.y-my);varX+=(p.x-mx)**2;});
+      olsBeta = varX>0?cov2/varX:null;
+      alpha   = olsBeta!==null?my-olsBeta*mx:null; // monthly alpha %
+      // R² for excess OLS
+      if(olsBeta!==null){
+        const yhat=excessPairs.map(p=>alpha+olsBeta*p.x);
+        const ssRes=excessPairs.reduce((a,p,j)=>a+(p.y-yhat[j])**2,0);
+        const ssTot=excessPairs.reduce((a,p)=>a+(p.y-my)**2,0);
+        olsR2=ssTot>0?1-ssRes/ssTot:null;
+      }
+    }
+
+    const alphaAnn  = alpha!==null ? alpha*12 : null;
+    const stdExcess = excessPairs.length>1?Math.sqrt(excessPairs.reduce((a,p)=>a+(p.y-excessPairs.reduce((s2,p2)=>s2+p2.y,0)/excessPairs.length)**2,0)/(excessPairs.length-1)):null;
+    const meanExcess= excessPairs.length?excessPairs.reduce((a,p)=>a+p.y,0)/excessPairs.length:null;
+    const sharpe    = (meanExcess!==null&&stdExcess&&stdExcess>0)?((meanExcess/stdExcess)*Math.sqrt(12)):null;
+    const treynor   = (meanExcess!==null&&beta&&beta!==0)?(meanExcess*12/beta):null;
+
+    results.push({
+      ticker, beta: olsBeta??beta, alpha, alphaAnn, r2: olsR2??r2,
+      capmMo, capmAnn, avgMo: avgMo*100,
+      sharpe, treynor, excessPairs, color:ACCENT_COLORS[i%10]
+    });
+  }
+
+  lastResults = results;
+  renderResults(results, mktMean*100, rfMonthly*100);
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER ALL
+═══════════════════════════════════════════════ */
+function renderResults(results, mktMeanPct, rfPct){
+  const valid = results.filter(r=>r.beta!==null);
+  if(!valid.length){showStatus('Could not compute results — check tickers exist in dataset.',true);return;}
+
+  /* ── Stat pills ── */
+  const avgBeta  = (valid.reduce((s,r)=>s+r.beta,0)/valid.length).toFixed(2);
+  const hiB      = valid.reduce((a,b)=>b.beta>a.beta?b:a);
+  const loB      = valid.reduce((a,b)=>b.beta<a.beta?b:a);
+  const pLabel   = activePeriod==='all'?'All History':activePeriod.toUpperCase();
+  document.getElementById('stat-pills').innerHTML=`
+    <div class="stat-pill"><div class="stat-pill__label">Avg Beta</div><div class="stat-pill__val">${avgBeta}</div><div class="stat-pill__sub">${valid.length} stocks · ${pLabel}</div></div>
+    <div class="stat-pill"><div class="stat-pill__label">Highest β</div><div class="stat-pill__val">${hiB.ticker}</div><div class="stat-pill__sub">β = ${hiB.beta.toFixed(3)}</div></div>
+    <div class="stat-pill"><div class="stat-pill__label">Lowest β</div><div class="stat-pill__val">${loB.ticker}</div><div class="stat-pill__sub">β = ${loB.beta.toFixed(3)}</div></div>
+    <div class="stat-pill"><div class="stat-pill__label">Mkt Return (mo)</div><div class="stat-pill__val">${mktMeanPct.toFixed(2)}%</div><div class="stat-pill__sub">S&P 500 · ${pLabel}</div></div>
+    <div class="stat-pill"><div class="stat-pill__label">Risk-Free (mo)</div><div class="stat-pill__val">${rfPct.toFixed(3)}%</div><div class="stat-pill__sub">~${(activeRf*100).toFixed(1)}% annual</div></div>
+  `;
+
+  /* ── ① SML Scatter ── */
+  const minB=Math.min(...valid.map(r=>r.beta))-0.3;
+  const maxB=Math.max(...valid.map(r=>r.beta))+0.3;
+  const sml=[{x:minB,y:rfPct+minB*(mktMeanPct-rfPct)},{x:maxB,y:rfPct+maxB*(mktMeanPct-rfPct)}];
+  if(smlChart) smlChart.destroy();
+  smlChart = new Chart(document.getElementById('scatter-chart').getContext('2d'),{
+    type:'scatter',
+    data:{datasets:[
+      {label:'SML',data:sml,type:'line',borderColor:'rgba(255,255,255,0.18)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,fill:false,order:1},
+      ...valid.map(r=>({label:r.ticker,data:[{x:r.beta,y:r.capmMo}],backgroundColor:r.color,pointRadius:9,pointHoverRadius:13,pointBorderColor:'rgba(255,255,255,0.2)',pointBorderWidth:1,order:0}))
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#10101a',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#e8e8f0',bodyColor:'#888899',padding:12,callbacks:{title:i=>i[0]?.dataset?.label||'',label:i=>i.dataset.label==='SML'?'Security Market Line':[`β = ${i.parsed.x.toFixed(3)}`,`E(r) = ${i.parsed.y.toFixed(3)}% / mo`]}}},
+    scales:{x:{title:{display:true,text:'Beta (β)',color:'#888899',font:{family:"'DM Mono',monospace",size:13}},grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#888899',font:{family:"'DM Mono',monospace",size:12}}},y:{title:{display:true,text:'CAPM E(r) % / month',color:'#888899',font:{family:"'DM Mono',monospace",size:13}},grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#888899',font:{family:"'DM Mono',monospace",size:12},callback:v=>v.toFixed(2)+'%'}}}},
+    plugins:[{afterDatasetsDraw(chart){const{ctx:c,data}=chart;data.datasets.slice(1).forEach((ds,i)=>{const meta=chart.getDatasetMeta(i+1);if(!meta.data[0])return;const{x,y}=meta.data[0].getCenterPoint();c.save();c.font="500 11px 'DM Mono',monospace";c.fillStyle=ds.backgroundColor;c.textAlign='center';c.fillText(ds.label,x,y-15);c.restore();});}}]
+  });
+
+  /* ── ② Table ── */
+  const sorted=[...valid].sort((a,b)=>b.beta-a.beta);
+  const ispt = document.documentElement.lang === 'pt-BR';
+  const clsLabel = (beta) => {
+    if (beta > 1.2) return ispt ? 'Agressivo' : 'Aggressive';
+    if (beta < 0.8) return ispt ? 'Defensivo' : 'Defensive';
+    return ispt ? 'Neutro' : 'Neutral';
+  };
+  document.getElementById('results-tbody').innerHTML=sorted.map(r=>{
+    const cls=clsLabel(r.beta);
+    const badge=r.beta>1.2?'badge--hi-risk':r.beta<0.8?'badge--lo':'badge--hi';
+    const fmt=(v,d,suf='%')=>v!==null?v.toFixed(d)+suf:'—';
+    return `<tr>
+      <td><div class="td-ticker"><span class="td-dot" style="background:${r.color}"></span>${r.ticker}<span class="badge ${badge}">${cls}</span></div></td>
+      <td>${fmt(r.beta,3,'')}</td>
+      <td>${fmt(r.capmMo,3)}</td>
+      <td>${fmt(r.capmAnn,2)}</td>
+      <td style="color:${r.alphaAnn!==null?(r.alphaAnn>0?'#5cf0b0':'#ff6b6b'):'var(--text-dim)'}">${fmt(r.alphaAnn,3)}</td>
+      <td>${fmt(r.sharpe,3,'')}</td>
+      <td>${fmt(r.treynor,3)}</td>
+      <td>${fmt(r.r2,3,'')}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--text-faint)">${cls}</td>
+    </tr>`;
+  }).join('');
+
+  /* ── ③ Excess Scatter tabs + chart ── */
+  const tabRow=document.getElementById('excess-scatter-tabs');
+  tabRow.innerHTML=valid.map(r=>`<button class="tab-btn" data-t="${r.ticker}" style="--tc:${r.color}" onclick="switchExcessTab('${r.ticker}')">${r.ticker}</button>`).join('');
+  activeExcessTicker=valid[0].ticker;
+  renderExcessScatter(valid[0]);
+  tabRow.querySelector('.tab-btn').classList.add('active');
+  tabRow.querySelectorAll('.tab-btn').forEach(b=>{
+    b.style.setProperty('--tc',b.dataset.t?(valid.find(r=>r.ticker===b.dataset.t)||{color:'#6eb5ff'}).color:'#6eb5ff');
+  });
+
+  /* ── ④ Bar charts ── */
+  renderBarChart('alpha-bar-chart',  alphaChart,  valid, r=>r.alphaAnn,  'Jensen\'s α (% annual)', v=>{alphaChart=v;}  );
+  renderBarChart('treynor-bar-chart',treynorChart, valid, r=>r.treynor,  'Treynor Ratio (% annual)', v=>{treynorChart=v;});
+  renderBarChart('sharpe-bar-chart', sharpeChart,  valid, r=>r.sharpe,   'Sharpe Ratio', v=>{sharpeChart=v;});
+
+  /* ── ⑤ Rolling CAPM setup ── */
+  const rtp=document.getElementById('rolling-ticker-pills');
+  rtp.innerHTML=valid.map(r=>`<button class="pill${r===valid[0]?' active':''}" data-t="${r.ticker}" onclick="switchRollingTicker('${r.ticker}')">${r.ticker}</button>`).join('');
+  document.querySelectorAll('#rolling-window-pills .pill').forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll('#rolling-window-pills .pill').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); activeRollingWindow=parseInt(b.dataset.val);
+      renderRollingCharts();
+    };
+  });
+  activeRollingTicker=valid[0].ticker;
+  renderRollingCharts();
+
+  document.getElementById('results-section').classList.add('visible');
+  // No auto-scroll — user stays at the top of the page
+}
+
+/* ── Excess Scatter ── */
+function switchExcessTab(ticker){
+  activeExcessTicker=ticker;
+  document.querySelectorAll('#excess-scatter-tabs .tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.t===ticker));
+  const r=lastResults.find(x=>x.ticker===ticker);
+  if(r) renderExcessScatter(r);
+}
+
+function renderExcessScatter(r){
+  if(excessChart) excessChart.destroy();
+  const pts=r.excessPairs||[];
+  if(!pts.length){
+    document.getElementById('excess-scatter-legend').innerHTML='<span style="color:var(--text-faint);font-family:var(--mono);font-size:12px;">No excess return data available.</span>';
+    return;
+  }
+  // OLS line
+  const xs=pts.map(p=>p.x); const ys=pts.map(p=>p.y);
+  const mx2=xs.reduce((a,v)=>a+v,0)/xs.length, my2=ys.reduce((a,v)=>a+v,0)/ys.length;
+  let cv2=0,vx2=0; xs.forEach((v,i)=>{cv2+=(v-mx2)*(ys[i]-my2);vx2+=(v-mx2)**2;});
+  const b2=vx2>0?cv2/vx2:null, a2=b2!==null?my2-b2*mx2:null;
+  const xMin=Math.min(...xs)-0.5, xMax=Math.max(...xs)+0.5;
+  const olsLine=b2!==null?[{x:xMin,y:a2+b2*xMin},{x:xMax,y:a2+b2*xMax}]:[];
+
+  excessChart = new Chart(document.getElementById('excess-scatter-chart').getContext('2d'),{
+    type:'scatter',
+    data:{datasets:[
+      {label:'OLS Line',data:olsLine,type:'line',borderColor:'#ffb347',borderWidth:2,pointRadius:0,fill:false,order:1},
+      {label:r.ticker,data:pts,backgroundColor:r.color+'bb',pointRadius:6,pointHoverRadius:9,pointBorderColor:'rgba(255,255,255,0.15)',pointBorderWidth:1,order:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#10101a',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#e8e8f0',bodyColor:'#888899',padding:10,callbacks:{label:i=>`SP500 xs: ${i.parsed.x.toFixed(2)}%  |  ${r.ticker} xs: ${i.parsed.y.toFixed(2)}%`}}},
+    scales:{x:{title:{display:true,text:'S&P 500 Excess Return (%)',color:'#888899',font:{family:"'DM Mono',monospace",size:13}},grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#888899',font:{family:"'DM Mono',monospace",size:12}}},y:{title:{display:true,text:`${r.ticker} Excess Return (%)`,color:'#888899',font:{family:"'DM Mono',monospace",size:13}},grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#888899',font:{family:"'DM Mono',monospace",size:12}}}}}
+  });
+
+  document.getElementById('excess-scatter-legend').innerHTML=`
+    <div class="scatter-legend__item"><span class="scatter-legend__dot" style="background:${r.color}"></span>${r.ticker} monthly excess returns (${pts.length} obs.)</div>
+    <div class="scatter-legend__item"><span class="scatter-legend__line"></span>OLS best-fit · β = ${b2!==null?b2.toFixed(3):'—'} · α = ${a2!==null?a2.toFixed(3):'—'}% · R² = ${r.r2!==null?r.r2.toFixed(3):'—'}</div>
+  `;
+  // Colour the active tab
+  document.querySelectorAll('#excess-scatter-tabs .tab-btn').forEach(btn=>{
+    if(btn.classList.contains('active')){
+      btn.style.background=r.color;
+      btn.style.borderColor=r.color;
+      btn.style.color='#050510';
+    } else {
+      btn.style.background='transparent';
+      btn.style.color='var(--text-dim)';
+    }
+  });
+}
+
+/* ── Bar Charts ── */
+function renderBarChart(canvasId, existing, results, valFn, label, setter){
+  if(existing) existing.destroy();
+  const vals=results.map(r=>valFn(r)??0);
+  const colors=vals.map(v=>v>=0?'#5cf0b0bb':'#ff6b6bbb');
+  const borderColors=vals.map(v=>v>=0?'#5cf0b0':'#ff6b6b');
+  setter(new Chart(document.getElementById(canvasId).getContext('2d'),{
+    type:'bar',
+    data:{labels:results.map(r=>r.ticker),datasets:[{label,data:vals,backgroundColor:colors,borderColor:borderColors,borderWidth:1,borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#10101a',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#e8e8f0',bodyColor:'#888899',padding:10,callbacks:{label:i=>`${label}: ${i.parsed.y.toFixed(3)}`}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#888899',font:{family:"'DM Mono',monospace",size:12}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#888899',font:{family:"'DM Mono',monospace",size:12}},border:{dash:[4,4]}}}}
+  }));
+}
+
+/* ── Rolling CAPM ── */
+function switchRollingTicker(ticker){
+  activeRollingTicker=ticker;
+  document.querySelectorAll('#rolling-ticker-pills .pill').forEach(b=>b.classList.toggle('active',b.dataset.t===ticker));
+  renderRollingCharts();
+}
+
+function renderRollingCharts(){
+  if(!capmData||!activeRollingTicker) return;
+  const mktPrices = capmData[MARKET_TICKER];
+  const stkPrices = capmData[activeRollingTicker];
+  if(!mktPrices||!stkPrices) return;
+
+  const mktSeries = getMonthlyReturnsSeries(mktPrices, activePeriod);
+  const stkSeries = getMonthlyReturnsSeries(stkPrices, activePeriod);
+  const len=Math.min(mktSeries.length,stkSeries.length);
+  const mkt=mktSeries.slice(-len), stk=stkSeries.slice(-len);
+  const rfMo=Math.pow(1+activeRf,1/12)-1;
+
+  const w=activeRollingWindow;
+  const dates=[], betas=[], alphas=[], r2s=[];
+
+  for(let i=w;i<=len;i++){
+    const mSlice=mkt.slice(i-w,i).map(p=>p.ret);
+    const sSlice=stk.slice(i-w,i).map(p=>p.ret);
+    // excess returns
+    const mEx=mSlice.map(v=>(v-rfMo)*100);
+    const sEx=sSlice.map(v=>(v-rfMo)*100);
+    const n=mEx.length;
+    const mx=mEx.reduce((a,v)=>a+v,0)/n, sy=sEx.reduce((a,v)=>a+v,0)/n;
+    let cv=0,vm=0,vs2=0;
+    mEx.forEach((v,j)=>{cv+=(v-mx)*(sEx[j]-sy);vm+=(v-mx)**2;vs2+=(sEx[j]-sy)**2;});
+    const b=vm>0?cv/vm:null;
+    const a=b!==null?sy-b*mx:null;
+    const r2=b!==null&&vs2>0?(cv/Math.sqrt(vm*vs2))**2:null;
+    dates.push(mkt[i-1].date);
+    betas.push(b!==null?parseFloat(b.toFixed(4)):null);
+    alphas.push(a!==null?parseFloat(a.toFixed(4)):null);
+    r2s.push(r2!==null?parseFloat(r2.toFixed(4)):null);
+  }
+
+  const lineOpts=(label,color,refLine=null)=>({
+    type:'line',
+    data:{labels:dates,datasets:[
+      ...(refLine!==null?[{label:`Ref ${refLine}`,data:Array(dates.length).fill(refLine),borderColor:'rgba(255,255,255,0.12)',borderWidth:1,borderDash:[5,4],pointRadius:0,fill:false}]:[]),
+      {label,data:betas,borderColor:color,borderWidth:1.5,pointRadius:0,fill:false,tension:0.3,spanGaps:true}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,backgroundColor:'#10101a',borderColor:'rgba(255,255,255,0.12)',borderWidth:1,titleColor:'#e8e8f0',bodyColor:'#888899',padding:10}},
+    scales:{x:{grid:{display:false},ticks:{color:'#888899',font:{family:"'DM Mono',monospace",size:11},maxTicksLimit:10}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#888899',font:{family:"'DM Mono',monospace",size:11}}}}}
+  });
+
+  if(rollingBetaChart) rollingBetaChart.destroy();
+  const bcfg=lineOpts(`Rolling Beta (${w}m)`,'#6eb5ff',1);
+  bcfg.data.datasets[bcfg.data.datasets.length-1].data=betas;
+  rollingBetaChart=new Chart(document.getElementById('rolling-beta-chart').getContext('2d'),bcfg);
+
+  if(rollingAlphaChart) rollingAlphaChart.destroy();
+  const acfg=lineOpts(`Rolling Alpha (${w}m)`,'#5cf0b0',0);
+  acfg.data.datasets[acfg.data.datasets.length-1].data=alphas;
+  rollingAlphaChart=new Chart(document.getElementById('rolling-alpha-chart').getContext('2d'),acfg);
+
+  if(rollingR2Chart) rollingR2Chart.destroy();
+  const r2cfg=lineOpts(`Rolling R² (${w}m)`,'#c97bff');
+  r2cfg.data.datasets[r2cfg.data.datasets.length-1].data=r2s;
+  rollingR2Chart=new Chart(document.getElementById('rolling-r2-chart').getContext('2d'),r2cfg);
+}
+
+/* ─── UI HELPERS ─── */
+function showStatus(msg, isError){
+  const el=document.getElementById('status-msg');
+  el.textContent=msg;
+  el.style.color=isError?'var(--a2)':'var(--text-dim)';
+  el.style.background=isError?'color-mix(in srgb,var(--a2) 8%,transparent)':'color-mix(in srgb,var(--a3) 6%,transparent)';
+  el.style.borderColor=isError?'color-mix(in srgb,var(--a2) 20%,transparent)':'color-mix(in srgb,var(--a3) 15%,transparent)';
+  el.classList.add('visible');
+}
+function hideStatus(){document.getElementById('status-msg').classList.remove('visible');}
+function toggleMethodology(){
+  document.getElementById('methodology-toggle').classList.toggle('open');
+  document.getElementById('methodology-body').classList.toggle('open');
+}
+
+/* ─── i18n ─── */
+const CAPM_STRINGS = {
+  en: {
+    nav_back:'← Back', nav_projects:'Projects', nav_current:'CAPM Risk-Return',
+    header_meta_left:'Quantitative Finance · Risk Analysis',
+    header_meta_right:'Interactive Tool — Live Data',
+    header_eyebrow:'CAPM · Beta · Risk-Return · Equity Analytics',
+    header_title:'Interactive Equity Risk<br>Dashboard (CAPM-Based)',
+    header_abstract:'Select any S&amp;P 500 constituents, choose your lookback window, and compute each stock\'s beta, Jensen\'s alpha, Sharpe and Treynor ratios — live, in the browser. Data sourced from Yahoo Finance and EODHD API.',
+    div_model:'01 — The Model',
+    overview_dropdown_title:'What is CAPM (Capital Asset Pricing Model)?',
+    overview_title:'Capital Asset Pricing Model',
+    overview_what_title:'What is CAPM?',
+    overview_p1:'CAPM is a foundational model in finance that links an asset\'s expected return to its systematic risk (beta) relative to a market index.',
+    overview_p2:'The model decomposes risk into <strong style="color:var(--text)">systematic</strong> (market-wide, non-diversifiable) and <strong style="color:var(--text)">idiosyncratic</strong> (firm-specific, diversifiable). CAPM rewards only systematic risk.',
+    overview_p3:'Beta measures sensitivity to market movements: β=1 moves with the market, β&gt;1 amplifies it, β&lt;1 dampens it.',
+    overview_formula_title:'Formula &amp; Parameters',
+    overview_formula_label:'CAPM Formula',
+    overview_beta:'<strong style="color:var(--a3)">β<sub>A</sub></strong> — Computed as Cov(r<sub>A</sub>, r<sub>m</sub>) / Var(r<sub>m</sub>) over the selected period',
+    overview_rf:'<strong style="color:var(--a3)">r<sub>f</sub></strong> — 10-year U.S. Treasury yield (~4.2% p.a. → converted to monthly)',
+    overview_rm:'<strong style="color:var(--a3)">E(r<sub>m</sub>)</strong> — Historical arithmetic mean return of S&amp;P 500 over the selected window',
+    div_tool:'02 — Interactive Tool',
+    tool_title:'Configure &amp; Run Analysis',
+    tool_sub:'Data loaded from GitHub · Monthly returns · Computed entirely in-browser',
+    load_msg:'Loading market data…',
+    ctrl_period:'Period',
+    period_1y:'1 Year', period_2y:'2 Years', period_3y:'3 Years',
+    period_5y:'5 Years', period_10y:'10 Years', period_all:'All History',
+    ctrl_rf:'Risk-Free Rate (annual)',
+    ctrl_interval:'Return Interval',
+    ctrl_interval_val:'Monthly',
+    ctrl_interval_note:'— fixed (pre-built dataset)',
+    ctrl_tickers:'Search &amp; Select Tickers (S&amp;P 500)',
+    no_tickers:'No tickers selected yet',
+    quickadd_hint:'Curate your own portfolio using the search above, or select one of the pre-defined portfolios below:',
+    quickadd_panel_title:'Pre-defined Portfolios &amp; Sectors',
+    qa_tab_portfolios:'Portfolios', qa_tab_sectors:'Sectors',
+    qa_defensive:'Defensive / Low Beta', qa_highbeta:'High Beta / Growth',
+    qa_value:'Value / Dividend',
+    qa_consumer_disc:'Consumer Discretionary', qa_consumer_staples:'Consumer Staples',
+    btn_clear:'✕ Clear All', btn_run:'Run Analysis',
+    div_results:'03 — Results',
+    chart_sml_title:'Beta vs. CAPM Expected Return',
+    chart_sml_sub:'Each point = one stock · Dashed line = Security Market Line (SML)',
+    interp_guide_title:'CAPM Model Interpretation Guide',
+    sml_title:'Reading the Security Market Line',
+    sml_l1:'The dashed SML represents the CAPM-predicted return for every level of beta. Any stock lying exactly on the line has zero alpha — it earns exactly what its systematic risk warrants.',
+    sml_l2:'<strong style="color:var(--a1)">Above the SML</strong> — the stock has generated more return than CAPM predicts for its beta. This positive alpha suggests outperformance that CAPM alone cannot explain.',
+    sml_l3:'<strong style="color:var(--a2)">Below the SML</strong> — the stock underperformed relative to its risk level. Negative alpha means investors were not adequately compensated for the systematic risk taken.',
+    sml_l4:'The slope of the SML equals the market risk premium: E(rm) − rf. A steeper SML means higher reward per unit of beta in the selected period.',
+    beta_title:'Understanding Beta &amp; CAPM Limitations',
+    beta_l1:'<strong style="color:var(--a3)">β &lt; 1</strong> — defensive stock, less volatile than the market. Utilities and Consumer Staples typically cluster here.',
+    beta_l2:'<strong style="color:var(--a3)">β = 1</strong> — moves in lockstep with the S&amp;P 500. The market itself has β = 1 by definition.',
+    beta_l3:'<strong style="color:var(--a3)">β &gt; 1</strong> — aggressive stock, amplifies market moves. High-growth tech tends to sit here.',
+    beta_l4:'CAPM assumes historical beta persists — it does not. It also ignores liquidity, size, value and momentum factors, which is why non-zero alphas are common and expected in practice.',
+    table_title:'Full Results Table',
+    table_sub:'Beta · Jensen\'s Alpha · Sharpe · Treynor · R² — sorted by Beta desc',
+    th_beta:'Beta (β)', th_er_m:'E(r) Monthly', th_er_a:'E(r) Annual',
+    th_alpha:'Jensen\'s α Annual', th_sharpe:'Sharpe Ratio', th_treynor:'Treynor Ratio', th_class:'Class',
+    excess_title:'Excess Return Scatter Plots',
+    excess_sub:'Monthly excess returns vs. S&P 500 excess returns · OLS regression line · β = slope, α = intercept',
+    alpha_title:'Jensen\'s Alpha', alpha_sub:'Annualised · α &gt; 0 = outperforms market',
+    treynor_title:'Treynor Ratio', treynor_sub:'Excess return per unit of systematic risk (β)',
+    sharpe_title:'Sharpe Ratio', sharpe_sub:'Excess return per unit of total risk (σ)',
+    metrics_guide_title:'How to Interpret These Metrics',
+    alpha_guide_title:'Jensen\'s Alpha (α)',
+    alpha_g1:'Alpha is the y-intercept of the OLS regression line fitted to excess returns. It represents the return the stock generates when the market return equals zero — i.e. pure outperformance beyond what beta predicts.',
+    alpha_g2:'<strong style="color:var(--a1)">Positive α</strong> — the stock consistently outperformed what CAPM expected given its risk. The stock generated excess returns not explained by its market exposure.',
+    alpha_g3:'<strong style="color:var(--a2)">Negative α</strong> — the stock underdelivered relative to its risk level. CAPM over-predicted performance, suggesting company-specific headwinds.',
+    alpha_g4:'A non-zero alpha means CAPM is insufficient to fully explain this stock\'s returns — other factors (value, momentum, quality) are likely at play.',
+    treynor_guide_title:'Treynor Ratio',
+    treynor_g1:'Treynor = (mean excess return × 12) / β. It measures how much annualised excess return an asset delivers per unit of systematic risk (beta).',
+    treynor_g2:'Unlike Sharpe, Treynor ignores idiosyncratic (diversifiable) risk. It is most meaningful for assets held as part of a diversified portfolio, where unsystematic risk is already eliminated.',
+    treynor_g3:'<strong style="color:var(--a1)">Higher Treynor</strong> — more return per unit of market risk. Better risk-adjusted performance relative to systematic exposure.',
+    treynor_g4:'Comparing Treynor across stocks tells you which generates the best return for the same amount of market sensitivity — useful for portfolio construction.',
+    sharpe_guide_title:'Sharpe Ratio',
+    sharpe_g1:'Sharpe = (mean excess return / σ of excess returns) × √12. It measures return per unit of total risk — both systematic and idiosyncratic.',
+    sharpe_g2:'Unlike Treynor, Sharpe penalises all volatility, making it ideal for evaluating standalone positions or concentrated portfolios where diversification is limited.',
+    sharpe_g3:'<strong style="color:var(--a1)">Higher Sharpe</strong> — more return per unit of overall price volatility. The investment compensates investors well for the turbulence endured.',
+    sharpe_g4:'A Sharpe above 1.0 is generally considered good; above 2.0 is excellent. Negative Sharpe means the asset underperformed the risk-free rate on a risk-adjusted basis.',
+    rolling_title:'Rolling CAPM Analysis',
+    rolling_sub:'Rolling Beta · Rolling Alpha · Rolling R² — configurable window',
+    rolling_ticker_label:'Ticker', rolling_window_label:'Window',
+    rolling_guide_title:'Understanding Rolling Window Analysis',
+    rolling_beta_title:'Rolling Beta (β)',
+    rbeta_l1:'Rather than computing one beta over the entire period, rolling beta calculates it repeatedly over a sliding window (e.g. the last 12 months), then moves one month forward and repeats.',
+    rbeta_l2:'This reveals how a stock\'s sensitivity to market movements evolves over time — something a static beta completely hides.',
+    rbeta_l3:'A rising rolling beta means the stock is becoming more correlated with the market — possibly due to macro regime changes, increased leverage, or sector rotation.',
+    rbeta_l4:'A falling rolling beta may signal the stock is decoupling from the market — driven by company-specific catalysts, defensive repositioning, or idiosyncratic events.',
+    rolling_alpha_title:'Rolling Alpha (α)',
+    ralpha_l1:'Rolling alpha tracks the OLS intercept over each window — the period-specific excess return above what beta-adjusted CAPM would predict.',
+    ralpha_l2:'Sustained positive rolling alpha over multiple windows suggests persistent outperformance that CAPM cannot explain — a strong signal of value creation beyond market exposure.',
+    ralpha_l3:'Periods of sharp negative alpha often coincide with company-specific crises, earnings misses, or sector-wide stress that disproportionately hurt this stock versus the market.',
+    ralpha_l4:'The dashed reference line at α = 0 represents the CAPM theoretical ideal. Most stocks oscillate around it over time.',
+    rolling_r2_title:'Rolling R²',
+    rr2_l1:'R² measures the proportion of the stock\'s return variance explained by market movements in each window. Range: 0 (no correlation) to 1 (perfectly explained by market).',
+    rr2_l2:'<strong style="color:var(--a1)">High R²</strong> — the stock is behaving like the market. Systematic risk dominates; idiosyncratic factors are minimal in this period.',
+    rr2_l3:'<strong style="color:var(--a2)">Low R²</strong> — company-specific factors are driving returns more than the market is. CAPM explains little of this stock\'s behaviour in this window.',
+    rr2_l4:'A declining R² often precedes periods of high alpha (positive or negative) — as CAPM loses explanatory power, stock-specific events take over.',
+    div_methodology:'04 — Methodology',
+    methodology_title:'Methodology &amp; Technical Details',
+    method_data_title:'Data &amp; Computation',
+    method_d1:'Monthly adjusted closes pre-processed from a 500MB HDF5 file into a lean ~4MB JSON, hosted on GitHub and fetched once on page load — no API calls needed',
+    method_d2:'Returns computed as month-over-month percentage change in adjusted closes',
+    method_d3:'Beta via OLS on excess returns: β = Cov(ri − rf, rm − rf) / Var(rm − rf), matching the statsmodels OLS approach in the original Python app',
+    method_d4:'Jensen\'s Alpha = OLS y-intercept (α) × 12 — annualised excess return when the market return equals zero',
+    method_d5:'Sharpe = (mean excess return / σ of excess returns) × √12 · Treynor = (mean excess return × 12) / β',
+    method_d6:'Rolling CAPM uses a sliding window of configurable size (6–36 months) recomputing β, α and R² at each step',
+    method_d7:'Outliers removed with the IQR method (×1.5 fence) before OLS regression — mirrors the original Python implementation',
+    method_assumptions_title:'Assumptions &amp; Limitations',
+    method_a1:'Risk-free rate is manually set; the tool uses a fixed annual rate converted to the matching interval',
+    method_a2:'CAPM is a single-factor model — idiosyncratic risk, liquidity, and macro factors are not captured',
+    method_a3:'Historical beta is backward-looking; it may not reflect current or future market sensitivity',
+    method_a4:'Data quality depends on Yahoo Finance\'s API response; missing data is handled by forward-filling the last available close',
+    method_a5:'This tool is for educational purposes — not investment advice',
+    disclaimer:'<strong>Educational use only.</strong> All results are derived from publicly available historical data. This tool does not constitute financial advice. Past returns do not guarantee future performance. Always consult a qualified financial professional before making investment decisions.',
+  },
+  pt: {
+    nav_back:'← Voltar', nav_projects:'Projetos', nav_current:'CAPM Risco-Retorno',
+    header_meta_left:'Finanças Quantitativas · Análise de Risco',
+    header_meta_right:'Ferramenta Interativa — Dados ao Vivo',
+    header_eyebrow:'CAPM · Beta · Risco-Retorno · Análise de Ações',
+    header_title:'Plataforma Interativa de Análise de Risco e Retorno (CAPM)',
+    header_abstract:'Selecione ações do S&amp;P 500, escolha o período de análise e calcule o beta, o alfa de Jensen, os índices de Sharpe e Treynor de cada ação — em tempo real, no navegador. Dados do Yahoo Finance e da API EODHD.',
+    div_model:'01 — O Modelo',
+    overview_dropdown_title:'O que é o CAPM (Modelo de Precificação de Ativos de Capital)?',
+    overview_title:'Modelo de Precificação de Ativos de Capital',
+    overview_what_title:'O que é o CAPM?',
+    overview_p1:'O CAPM é um modelo fundamental em finanças que relaciona o retorno esperado de um ativo ao seu risco sistemático (beta) em relação a um índice de mercado.',
+    overview_p2:'O modelo decompõe o risco em <strong style="color:var(--text)">sistemático</strong> (risco de mercado, não diversificável) e <strong style="color:var(--text)">idiossincrático</strong> (específico da empresa, diversificável). O CAPM recompensa apenas o risco sistemático.',
+    overview_p3:'O beta mede a sensibilidade aos movimentos do mercado: β=1 acompanha o mercado, β&gt;1 amplifica, β&lt;1 atenua.',
+    overview_formula_title:'Fórmula &amp; Parâmetros',
+    overview_formula_label:'Fórmula do CAPM',
+    overview_beta:'<strong style="color:var(--a3)">β<sub>A</sub></strong> — Calculado como Cov(r<sub>A</sub>, r<sub>m</sub>) / Var(r<sub>m</sub>) no período selecionado',
+    overview_rf:'<strong style="color:var(--a3)">r<sub>f</sub></strong> — Rendimento do Tesouro americano de 10 anos (~4,2% a.a. → convertido para mensal)',
+    overview_rm:'<strong style="color:var(--a3)">E(r<sub>m</sub>)</strong> — Retorno médio aritmético histórico do S&amp;P 500 na janela selecionada',
+    div_tool:'02 — Ferramenta Interativa',
+    tool_title:'Configurar &amp; Executar Análise',
+    tool_sub:'Dados carregados do GitHub · Retornos mensais · Calculado inteiramente no navegador',
+    load_msg:'Carregando dados de mercado…',
+    ctrl_period:'Período',
+    period_1y:'1 Ano', period_2y:'2 Anos', period_3y:'3 Anos',
+    period_5y:'5 Anos', period_10y:'10 Anos', period_all:'Todo o Histórico',
+    ctrl_rf:'Taxa Livre de Risco (anual)',
+    ctrl_interval:'Intervalo de Retorno',
+    ctrl_interval_val:'Mensal',
+    ctrl_interval_note:'— fixo (dataset pré-construído)',
+    ctrl_tickers:'Pesquisar &amp; Selecionar Ações (S&amp;P 500)',
+    no_tickers:'Nenhuma ação selecionada ainda',
+    quickadd_hint:'Monte seu próprio portfólio usando a busca acima, ou selecione um dos portfólios pré-definidos abaixo:',
+    quickadd_panel_title:'Portfólios e Setores Pré-definidos',
+    qa_tab_portfolios:'Portfólios', qa_tab_sectors:'Setores',
+    qa_defensive:'Defensivo / Beta Baixo', qa_highbeta:'Beta Alto / Crescimento',
+    qa_value:'Valor / Dividendo',
+    qa_consumer_disc:'Consumo Discricionário', qa_consumer_staples:'Consumo Básico',
+    btn_clear:'✕ Limpar Tudo', btn_run:'Executar Análise',
+    div_results:'03 — Resultados',
+    chart_sml_title:'Beta vs. Retorno Esperado pelo CAPM',
+    chart_sml_sub:'Cada ponto = uma ação · Linha tracejada = Linha do Mercado de Títulos (SML)',
+    interp_guide_title:'Guia de Interpretação do Modelo CAPM',
+    sml_title:'Lendo a Linha do Mercado de Títulos',
+    sml_l1:'A SML tracejada representa o retorno previsto pelo CAPM para cada nível de beta. Qualquer ação exatamente sobre a linha tem alfa zero — ganha exatamente o que seu risco sistemático justifica.',
+    sml_l2:'<strong style="color:var(--a1)">Acima da SML</strong> — a ação gerou mais retorno do que o CAPM prevê para o seu beta. Esse alfa positivo sugere desempenho superior que o CAPM sozinho não explica.',
+    sml_l3:'<strong style="color:var(--a2)">Abaixo da SML</strong> — a ação ficou abaixo do esperado para seu nível de risco. Alfa negativo significa que os investidores não foram adequadamente compensados pelo risco sistemático assumido.',
+    sml_l4:'A inclinação da SML é igual ao prêmio de risco de mercado: E(rm) − rf. Uma SML mais íngreme significa maior recompensa por unidade de beta no período selecionado.',
+    beta_title:'Entendendo o Beta &amp; Limitações do CAPM',
+    beta_l1:'<strong style="color:var(--a3)">β &lt; 1</strong> — ação defensiva, menos volátil que o mercado. Utilitárias e consumo básico geralmente se concentram aqui.',
+    beta_l2:'<strong style="color:var(--a3)">β = 1</strong> — move-se em sincronia com o S&amp;P 500. O próprio mercado tem β = 1 por definição.',
+    beta_l3:'<strong style="color:var(--a3)">β &gt; 1</strong> — ação agressiva, amplifica os movimentos do mercado. Tecnologia de alto crescimento tende a ficar aqui.',
+    beta_l4:'O CAPM assume que o beta histórico persiste — o que não ocorre. Também ignora liquidez, tamanho, valor e fatores de momento, razão pela qual alfas não nulos são comuns e esperados na prática.',
+    table_title:'Tabela Completa de Resultados',
+    table_sub:'Beta · Alfa de Jensen · Sharpe · Treynor · R² — ordenado por Beta (desc)',
+    th_beta:'Beta (β)', th_er_m:'E(r) Mensal', th_er_a:'E(r) Anual',
+    th_alpha:'Alfa de Jensen Anual', th_sharpe:'Índice de Sharpe', th_treynor:'Índice de Treynor', th_class:'Classe',
+    excess_title:'Gráficos de Dispersão de Retornos Excedentes',
+    excess_sub:'Retornos excedentes mensais vs. retornos excedentes do S&P 500 · Linha OLS · β = inclinação, α = intercepto',
+    alpha_title:'Alfa de Jensen', alpha_sub:'Anualizado · α &gt; 0 = supera o mercado',
+    treynor_title:'Índice de Treynor', treynor_sub:'Retorno excedente por unidade de risco sistemático (β)',
+    sharpe_title:'Índice de Sharpe', sharpe_sub:'Retorno excedente por unidade de risco total (σ)',
+    metrics_guide_title:'Como Interpretar Essas Métricas',
+    alpha_guide_title:'Alfa de Jensen (α)',
+    alpha_g1:'O alfa é o intercepto da linha de regressão OLS ajustada aos retornos excedentes. Representa o retorno que a ação gera quando o retorno do mercado é zero — ou seja, desempenho puro além do que o beta prevê.',
+    alpha_g2:'<strong style="color:var(--a1)">α Positivo</strong> — a ação consistentemente superou o que o CAPM esperava dado o seu risco. Gerou retornos excedentes não explicados pela sua exposição ao mercado.',
+    alpha_g3:'<strong style="color:var(--a2)">α Negativo</strong> — a ação ficou abaixo do esperado para seu nível de risco. O CAPM superestimou o desempenho, sugerindo ventos contrários específicos da empresa.',
+    alpha_g4:'Um alfa não nulo significa que o CAPM é insuficiente para explicar totalmente os retornos desta ação — outros fatores (valor, momentum, qualidade) provavelmente estão em jogo.',
+    treynor_guide_title:'Índice de Treynor',
+    treynor_g1:'Treynor = (retorno excedente médio × 12) / β. Mede quanto retorno excedente anualizado um ativo entrega por unidade de risco sistemático (beta).',
+    treynor_g2:'Ao contrário do Sharpe, o Treynor ignora o risco idiossincrático (diversificável). É mais significativo para ativos mantidos como parte de um portfólio diversificado, onde o risco não sistemático já foi eliminado.',
+    treynor_g3:'<strong style="color:var(--a1)">Treynor mais alto</strong> — mais retorno por unidade de risco de mercado. Melhor desempenho ajustado ao risco em relação à exposição sistemática.',
+    treynor_g4:'Comparar o Treynor entre ações indica qual gera o melhor retorno para a mesma quantidade de sensibilidade ao mercado — útil para construção de portfólios.',
+    sharpe_guide_title:'Índice de Sharpe',
+    sharpe_g1:'Sharpe = (retorno excedente médio / σ dos retornos excedentes) × √12. Mede o retorno por unidade de risco total — tanto sistemático quanto idiossincrático.',
+    sharpe_g2:'Ao contrário do Treynor, o Sharpe penaliza toda a volatilidade, sendo ideal para avaliar posições isoladas ou portfólios concentrados onde a diversificação é limitada.',
+    sharpe_g3:'<strong style="color:var(--a1)">Sharpe mais alto</strong> — mais retorno por unidade de volatilidade geral de preços. O investimento compensa bem os investidores pela turbulência enfrentada.',
+    sharpe_g4:'Um Sharpe acima de 1,0 é geralmente considerado bom; acima de 2,0 é excelente. Sharpe negativo significa que o ativo ficou abaixo da taxa livre de risco em termos ajustados ao risco.',
+    rolling_title:'Análise CAPM Rolling',
+    rolling_sub:'Beta Rolling · Alfa Rolling · R² Rolling — janela configurável',
+    rolling_ticker_label:'Ação', rolling_window_label:'Janela',
+    rolling_guide_title:'Entendendo a Análise de Janela Deslizante',
+    rolling_beta_title:'Beta Rolling (β)',
+    rbeta_l1:'Em vez de calcular um único beta para todo o período, o beta rolling o calcula repetidamente em uma janela deslizante (ex.: os últimos 12 meses), depois avança um mês e repete.',
+    rbeta_l2:'Isso revela como a sensibilidade da ação aos movimentos do mercado evolui ao longo do tempo — algo que um beta estático esconde completamente.',
+    rbeta_l3:'Um beta rolling crescente indica que a ação está se tornando mais correlacionada com o mercado — possivelmente devido a mudanças de regime macroeconômico, aumento de alavancagem ou rotação setorial.',
+    rbeta_l4:'Um beta rolling decrescente pode sinalizar que a ação está se desacoplando do mercado — impulsionada por catalisadores específicos da empresa, reposicionamento defensivo ou eventos idiossincráticos.',
+    rolling_alpha_title:'Alfa Rolling (α)',
+    ralpha_l1:'O alfa rolling acompanha o intercepto OLS em cada janela — o retorno excedente específico do período acima do que o CAPM ajustado ao beta preveria.',
+    ralpha_l2:'Alfa rolling positivo sustentado ao longo de múltiplas janelas sugere desempenho superior persistente que o CAPM não consegue explicar — um forte sinal de criação de valor além da exposição ao mercado.',
+    ralpha_l3:'Períodos de alfa negativo acentuado frequentemente coincidem com crises específicas da empresa, resultados abaixo do esperado ou estresse setorial que prejudicou esta ação mais do que o mercado.',
+    ralpha_l4:'A linha de referência tracejada em α = 0 representa o ideal teórico do CAPM. A maioria das ações oscila em torno dela ao longo do tempo.',
+    rolling_r2_title:'R² Rolling',
+    rr2_l1:'O R² mede a proporção da variância do retorno da ação explicada pelos movimentos do mercado em cada janela. Intervalo: 0 (sem correlação) a 1 (totalmente explicado pelo mercado).',
+    rr2_l2:'<strong style="color:var(--a1)">R² alto</strong> — a ação está se comportando como o mercado. O risco sistemático domina; fatores idiossincráticos são mínimos neste período.',
+    rr2_l3:'<strong style="color:var(--a2)">R² baixo</strong> — fatores específicos da empresa estão impulsionando os retornos mais do que o mercado. O CAPM explica pouco do comportamento desta ação nesta janela.',
+    rr2_l4:'Um R² em declínio frequentemente precede períodos de alfa alto (positivo ou negativo) — à medida que o CAPM perde poder explicativo, eventos específicos da ação assumem o controle.',
+    div_methodology:'04 — Metodologia',
+    methodology_title:'Metodologia &amp; Detalhes Técnicos',
+    method_data_title:'Dados &amp; Cálculo',
+    method_d1:'Fechamentos ajustados mensais pré-processados de um arquivo HDF5 de 500MB em um JSON compacto de ~4MB, hospedado no GitHub e carregado uma vez ao abrir a página — sem chamadas de API adicionais',
+    method_d2:'Retornos calculados como variação percentual mês a mês nos fechamentos ajustados',
+    method_d3:'Beta via OLS nos retornos excedentes: β = Cov(ri − rf, rm − rf) / Var(rm − rf), replicando a abordagem OLS do statsmodels do aplicativo Python original',
+    method_d4:'Alfa de Jensen = intercepto OLS (α) × 12 — retorno excedente anualizado quando o retorno do mercado é zero',
+    method_d5:'Sharpe = (retorno excedente médio / σ dos retornos excedentes) × √12 · Treynor = (retorno excedente médio × 12) / β',
+    method_d6:'O CAPM rolling usa uma janela deslizante de tamanho configurável (6–36 meses) recalculando β, α e R² a cada passo',
+    method_d7:'Outliers removidos com o método IQR (cerca de ×1,5) antes da regressão OLS — espelha a implementação Python original',
+    method_assumptions_title:'Premissas &amp; Limitações',
+    method_a1:'A taxa livre de risco é definida manualmente; a ferramenta usa uma taxa anual fixa convertida para o intervalo correspondente',
+    method_a2:'O CAPM é um modelo de fator único — risco idiossincrático, liquidez e fatores macroeconômicos não são capturados',
+    method_a3:'O beta histórico é retrospectivo; pode não refletir a sensibilidade atual ou futura ao mercado',
+    method_a4:'A qualidade dos dados depende da resposta da API do Yahoo Finance; dados ausentes são tratados com forward-fill do último fechamento disponível',
+    method_a5:'Esta ferramenta tem fins educacionais — não constitui aconselhamento de investimento',
+    disclaimer:'<strong>Apenas para fins educacionais.</strong> Todos os resultados são derivados de dados históricos publicamente disponíveis. Esta ferramenta não constitui aconselhamento financeiro. Retornos passados não garantem desempenho futuro. Consulte sempre um profissional financeiro qualificado antes de tomar decisões de investimento.',
+  }
+};
+
+function setLang(lang, btn) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else document.querySelector(`.lang-btn[onclick*="'${lang}'"]`)?.classList.add('active');
+  const S = CAPM_STRINGS[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (S[key] !== undefined) el.innerHTML = S[key];
+  });
+  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+  // Update URL param without reload
+  const url = new URL(window.location);
+  if (lang === 'pt') url.searchParams.set('lang','pt');
+  else url.searchParams.delete('lang');
+  history.replaceState(null,'',url);
+  // Update back link to carry lang param
+  document.querySelectorAll('a.nav__back, a.nav__logo').forEach(a => {
+    const base = a.href.split('?')[0];
+    a.href = lang === 'pt' ? base + '?lang=pt' : base;
+  });
+}
+
+/* ── LANG FROM URL ── */
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('lang') === 'pt') {
+    setLang('pt', null);
+  }
+})();
+
+loadData();
+</script>
+</body>
+</html>

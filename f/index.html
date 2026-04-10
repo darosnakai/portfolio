@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Daros Nakai — Financial Analyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/png" href="projects-f/favicon_dn.png" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:         #faf8f3;
+  --bg2:        #f3f0e8;
+  --bg3:        #eceae0;
+  --ink:        #0f0f0f;
+  --ink-mid:    #3a3530;
+  --ink-dim:    #7a7060;
+  --ink-faint:  #b0a890;
+  --rule:       #dedad0;
+  --rule-hi:    #c8c0a8;
+  --gold:       #9a7c3a;
+  --gold-light: #c8a85a;
+  --serif:      'Playfair Display', Georgia, serif;
+  --mono:       'IBM Plex Mono', monospace;
+  --sans:       'DM Sans', sans-serif;
+  --radius:     4px;
+  --tr:         0.2s ease;
+  --nav-h:      56px;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { background:var(--bg); color:var(--ink); font-family:var(--sans); min-height:100vh; overflow-x:hidden; }
+
+/* ── NOISE TEXTURE ── */
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  opacity:0.018;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
+
+/* ── NAV ── */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 56px; height:var(--nav-h);
+  background:rgba(250,248,243,0.92); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--rule);
+}
+.nav__logo {
+  font-family:var(--serif); font-size:17px; font-weight:600;
+  color:var(--ink); text-decoration:none; letter-spacing:0.01em;
+}
+.nav__right { display:flex; align-items:center; gap:40px; }
+.nav__links { display:flex; gap:32px; list-style:none; }
+.nav__links a {
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-dim); text-decoration:none; position:relative; padding-bottom:3px; transition:color var(--tr);
+}
+.nav__links a::after { content:''; position:absolute; bottom:0; left:0; width:0; height:1px; background:var(--gold); transition:width .25s ease; }
+.nav__links a:hover { color:var(--ink); }
+.nav__links a:hover::after { width:100%; }
+.lang-toggle { display:flex; border:1px solid var(--rule-hi); border-radius:3px; overflow:hidden; }
+.lang-btn { font-family:var(--mono); font-size:10px; letter-spacing:.1em; padding:5px 11px; border:none; background:transparent; color:var(--ink-faint); cursor:pointer; transition:all var(--tr); }
+.lang-btn.active { background:var(--ink); color:var(--bg); font-weight:500; }
+.lang-btn:not(.active):hover { color:var(--ink); background:var(--bg2); }
+
+/* ── PAGE ── */
+.page { position:relative; z-index:1; max-width:1160px; margin:0 auto; padding:0 56px 120px; }
+
+/* ── HERO ── */
+.hero__layout {
+  display:grid; grid-template-columns:1fr auto;
+  gap:64px; align-items:center;
+  padding:calc(var(--nav-h) + 72px) 0 56px;
+}
+.hero__text { display:flex; flex-direction:column; }
+.hero__eyebrow {
+  font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:22px; display:flex; align-items:center; gap:12px;
+  opacity:0; animation:fadeUp .6s ease .1s forwards;
+}
+.hero__eyebrow::before { content:''; display:inline-block; width:28px; height:1px; background:var(--gold); }
+.hero__name {
+  font-family:var(--serif); font-size:clamp(52px,7vw,88px); font-weight:700;
+  line-height:1.0; letter-spacing:-.02em; color:var(--ink); margin-bottom:14px;
+  opacity:0; animation:fadeUp .6s ease .2s forwards;
+}
+.hero__rule { width:48px; height:1px; background:var(--rule-hi); margin-bottom:18px; opacity:0; animation:fadeUp .6s ease .25s forwards; }
+.hero__role {
+  font-family:var(--mono); font-size:13px; letter-spacing:.06em; color:var(--ink-dim);
+  margin-bottom:28px; opacity:0; animation:fadeUp .6s ease .3s forwards;
+}
+.hero__role .accent { color:var(--ink); font-weight:500; }
+.hero__bio {
+  font-family:var(--sans); font-size:15px; color:var(--ink-mid); line-height:1.78;
+  max-width:500px; margin-bottom:40px;
+  opacity:0; animation:fadeUp .6s ease .4s forwards;
+}
+.hero__bio strong { color:var(--ink); font-weight:500; }
+.hero__cta { display:flex; gap:10px; flex-wrap:wrap; opacity:0; animation:fadeUp .6s ease .5s forwards; }
+
+/* ── PHOTO ── */
+.hero__photo { flex-shrink:0; display:flex; opacity:0; animation:fadeIn .8s ease .5s forwards; }
+.hero__photo-frame {
+  width:380px; height:460px; border-radius:2px;
+  border:1px solid var(--rule-hi); background:var(--bg2); overflow:hidden; position:relative;
+  transition:border-color var(--tr), box-shadow var(--tr);
+}
+.hero__photo-frame:hover { border-color:var(--gold-light); box-shadow:0 0 40px rgba(154,124,58,0.08); }
+.hero__photo-frame img { width:100%; height:100%; object-fit:cover; object-position:45% 20%; display:block; }
+
+/* ── BUTTONS ── */
+.btn {
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  padding:11px 22px; border-radius:2px; text-decoration:none; cursor:pointer;
+  transition:all var(--tr); display:inline-flex; align-items:center; gap:8px; border:none;
+}
+.btn--primary { background:var(--ink); color:var(--bg); border:1px solid var(--ink); }
+.btn--primary:hover { background:var(--ink-mid); transform:translateY(-1px); }
+.btn--ghost { background:transparent; color:var(--ink); border:1px solid var(--rule-hi); }
+.btn--ghost:hover { border-color:var(--ink-mid); background:var(--bg2); transform:translateY(-1px); }
+.btn--gold { background:transparent; color:var(--gold); border:1px solid color-mix(in srgb,var(--gold) 45%,transparent); }
+.btn--gold:hover { background:color-mix(in srgb,var(--gold) 8%,transparent); border-color:var(--gold); transform:translateY(-1px); }
+
+/* ── STRIP ── */
+.strip-outer { position:relative; z-index:1; }
+.strip {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  border:1px solid var(--rule); border-radius:var(--radius); overflow:hidden;
+}
+.strip-item { padding:22px 24px; border-right:1px solid var(--rule); background:var(--bg); }
+.strip-item:last-child { border-right:none; }
+.strip-val {
+  font-family:var(--serif); font-size:clamp(11px,1.2vw,15px); font-weight:600;
+  color:var(--ink); line-height:1.3; margin-bottom:5px;
+}
+.strip-label { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); }
+
+/* ── SECTIONS ── */
+.section { padding:96px 0 0; }
+.section__eyebrow {
+  font-family:var(--mono); font-size:10px; letter-spacing:.25em; text-transform:uppercase;
+  color:var(--gold); margin-bottom:12px; display:flex; align-items:center; gap:10px;
+}
+.section__eyebrow::before { content:''; display:inline-block; width:28px; height:1px; background:var(--gold); }
+.section__title {
+  font-family:var(--serif); font-size:clamp(28px,4vw,44px); font-weight:700;
+  letter-spacing:-.01em; color:var(--ink); margin-bottom:10px; line-height:1.1;
+}
+.section__subtitle { font-family:var(--sans); font-size:15px; color:var(--ink-dim); line-height:1.75; max-width:560px; margin-bottom:48px; }
+.section__divider { width:100%; height:1px; background:var(--rule); margin-bottom:48px; }
+
+/* ── PROJECT CARDS ── */
+.projects-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:var(--radius); overflow:hidden; }
+.project-card {
+  background:var(--bg); padding:36px 32px 32px; text-decoration:none; color:inherit;
+  display:flex; flex-direction:column; position:relative;
+  transition:background var(--tr);
+  cursor:pointer;
+}
+.project-card:hover { background:var(--bg2); }
+.card__number { font-family:var(--mono); font-size:10px; letter-spacing:.2em; color:var(--ink-faint); margin-bottom:16px; }
+.card__title {
+  font-family:var(--serif); font-size:20px; font-weight:600; line-height:1.35;
+  color:var(--ink); margin-bottom:14px; letter-spacing:-.01em;
+  transition:color var(--tr);
+}
+.project-card:hover .card__title { color:var(--gold); }
+.card__desc { font-family:var(--sans); font-size:13px; color:var(--ink-dim); line-height:1.72; flex:1; margin-bottom:28px; }
+.card__footer { display:flex; align-items:center; justify-content:space-between; padding-top:16px; border-top:1px solid var(--rule); }
+.card__tech { display:flex; gap:6px; flex-wrap:wrap; }
+.card__tech-item { font-family:var(--mono); font-size:10px; color:var(--ink-faint); }
+.card__tech-item+.card__tech-item::before { content:'·'; margin-right:6px; }
+.card__arrow { font-size:16px; color:var(--ink-faint); transition:all var(--tr); line-height:1; }
+.project-card:hover .card__arrow { color:var(--gold); transform:translate(3px,-3px); }
+
+/* ── EDUCATION TIMELINE ── */
+.timeline { position:relative; padding:48px 0 8px; }
+.timeline::before {
+  content:''; position:absolute; left:88px; top:0; bottom:0;
+  width:1px; background:linear-gradient(to bottom, var(--gold-light), rgba(154,124,58,0.05) 95%);
+}
+.timeline-item { display:grid; grid-template-columns:88px 32px 1fr; gap:0 20px; margin-bottom:48px; align-items:start; }
+.timeline-item:last-child { margin-bottom:0; }
+.timeline-year {
+  font-family:var(--mono); font-size:12px; font-weight:500; color:var(--gold);
+  letter-spacing:.04em; text-align:right; padding-top:4px;
+  opacity:0; transition:opacity .5s ease;
+}
+.timeline-item.tl-visible .timeline-year { opacity:1; }
+.timeline-dot-col { display:flex; justify-content:center; position:relative; z-index:2; padding-top:4px; }
+.timeline-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; cursor:default; transition:transform .15s ease; }
+.timeline-content {
+  opacity:0; transform:translateY(14px);
+  transition:opacity .5s ease, transform .5s ease;
+  position:relative; z-index:1;
+}
+.timeline-item.tl-visible .timeline-content { opacity:1; transform:translateY(0); }
+.timeline-institution { font-family:var(--serif); font-size:18px; font-weight:600; letter-spacing:-.01em; margin-bottom:3px; color:var(--ink); }
+.timeline-degree { font-family:var(--mono); font-size:11px; color:var(--gold); letter-spacing:.05em; margin-bottom:4px; }
+.timeline-dates { font-family:var(--mono); font-size:10px; color:var(--ink-faint); letter-spacing:.06em; margin-bottom:10px; }
+.timeline-desc { font-family:var(--sans); font-size:13px; color:var(--ink-dim); line-height:1.72; }
+.timeline-tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.timeline-tag {
+  font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+  padding:3px 10px; border-radius:2px; border:1px solid var(--rule-hi); color:var(--ink-dim); background:var(--bg2);
+}
+.timeline-tag--amber { border-color:color-mix(in srgb,var(--gold) 45%,transparent); color:var(--gold); background:color-mix(in srgb,var(--gold) 8%,var(--bg)); }
+.timeline-tag--blue   { border-color:#9aafcc; color:#4a6888; background:color-mix(in srgb,#6a8fbb 8%,var(--bg)); }
+.timeline-tag--violet { border-color:#b8a8cc; color:#7a5a88; background:color-mix(in srgb,#9a78bb 8%,var(--bg)); }
+.timeline-tag--green  { border-color:#8aaa88; color:#4a7848; background:color-mix(in srgb,#6a9868 8%,var(--bg)); }
+
+/* ── TIMELINE TOOLTIP ── */
+.tl-tooltip-wrap { position:relative; }
+.tl-tooltip {
+  display:none; position:absolute; left:0; top:calc(100% + 12px); z-index:9999;
+  width:480px; background:#2e2a22; border:1px solid #4a4232; border-radius:4px; padding:16px 18px; pointer-events:none;
+}
+.tl-tooltip::before {
+  content:''; position:absolute; top:-6px; left:20px;
+  width:9px; height:9px; background:#2e2a22; border-left:1px solid #4a4232; border-top:1px solid #4a4232;
+  transform:rotate(45deg);
+}
+.tl-tooltip-tag { display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; padding:3px 10px; border-radius:2px; margin-bottom:10px; background:rgba(200,168,90,0.15); color:var(--gold-light); border:1px solid rgba(200,168,90,0.2); }
+.tl-tooltip-text { font-family:var(--sans); font-size:12px; line-height:1.75; color:#c8c0a8; }
+.tl-tooltip-wrap:hover .tl-tooltip { display:block; }
+.tl-tooltip-wrap:hover .timeline-dot { transform:scale(1.4); }
+.tl-tooltip-wrap:hover { z-index:9998; }
+
+/* ── ABOUT ── */
+.about-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:48px;
+  background:var(--bg2); border:1px solid var(--rule); border-radius:var(--radius);
+  padding:40px; margin-top:48px;
+}
+.about-block__title { font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--rule); }
+.about-list { list-style:none; display:flex; flex-direction:column; gap:12px; }
+.about-list li { font-family:var(--sans); font-size:13px; color:var(--ink-mid); line-height:1.65; display:flex; gap:10px; align-items:flex-start; }
+.about-list li::before { content:'—'; color:var(--gold); flex-shrink:0; font-family:var(--mono); }
+
+/* ── SKILLS ── */
+.skills-outer {
+  background:var(--bg2); border:1px solid var(--rule); border-radius:var(--radius);
+  padding:40px; margin-top:32px; display:grid; grid-template-columns:1fr 1fr; gap:36px;
+}
+.skills-group { margin-bottom:28px; }
+.skills-group:last-child { margin-bottom:0; }
+.skills-group-title { font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--rule); }
+.skills-chips { display:flex; flex-wrap:wrap; gap:7px; }
+.skill-chip { font-family:var(--mono); font-size:11px; letter-spacing:.03em; padding:5px 12px; border-radius:2px; background:var(--bg); border:1px solid var(--rule-hi); color:var(--ink-dim); transition:all var(--tr); }
+.skill-chip:hover { border-color:var(--gold); color:var(--gold); }
+.skill-chip--green  { border-color:#8aaa88; color:#4a7848; background:color-mix(in srgb,#6a9868 6%,var(--bg)); }
+.skill-chip--blue   { border-color:#9aafcc; color:#4a6888; background:color-mix(in srgb,#6a8fbb 6%,var(--bg)); }
+.skill-chip--violet { border-color:#b8a8cc; color:#7a5a88; background:color-mix(in srgb,#9a78bb 6%,var(--bg)); }
+.skill-chip--amber  { border-color:color-mix(in srgb,var(--gold) 45%,transparent); color:var(--gold); background:color-mix(in srgb,var(--gold) 6%,var(--bg)); }
+
+/* ── STRATEGY SHOWCASE ── */
+.strat__kpis { display:grid; grid-template-columns:repeat(5,1fr); border:1px solid var(--rule); border-radius:var(--radius); overflow:hidden; margin-bottom:24px; }
+.strat__kpi { padding:20px 22px; border-right:1px solid var(--rule); background:var(--bg); }
+.strat__kpi:last-child { border-right:none; }
+.strat__kpi-val { font-family:var(--serif); font-size:clamp(16px,1.8vw,22px); font-weight:600; color:var(--gold); margin-bottom:4px; line-height:1.2; }
+.strat__kpi-lbl { font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink); margin-bottom:2px; }
+.strat__kpi-sub { font-family:var(--mono); font-size:9px; color:var(--ink-faint); letter-spacing:.06em; }
+.strat__chart-wrap { background:var(--bg2); border:1px solid var(--rule); border-radius:var(--radius); padding:24px 28px; }
+.strat__chart-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.strat__chart-title { font-family:var(--serif); font-size:15px; font-weight:600; color:var(--ink); margin-bottom:3px; }
+.strat__chart-sub { font-family:var(--mono); font-size:10px; color:var(--ink-faint); letter-spacing:.04em; }
+.strat__legend { display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+.strat__leg-item { display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:10px; color:var(--ink-dim); }
+.strat__leg-dot { display:inline-block; width:24px; height:2px; border-radius:1px; flex-shrink:0; }
+.strat__leg-dot--dash { background:repeating-linear-gradient(90deg,#b0a890 0,#b0a890 4px,transparent 4px,transparent 7px) !important; }
+
+/* ── PROJECT CHART PREVIEW ── */
+.card__chart-wrap { margin:0 -32px 20px; padding:16px 32px 12px; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); background:var(--bg2); }
+.card__chart-legend { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+.card__chart-legend span { font-family:var(--mono); font-size:10px; color:var(--ink-dim); }
+.card__chart-dot { display:inline-block; width:20px; height:2px; border-radius:1px; vertical-align:middle; margin-right:3px; }
+footer {
+  position:relative; z-index:1; max-width:1160px; margin:0 auto; padding:32px 56px;
+  border-top:1px solid var(--rule); display:flex; align-items:center; justify-content:space-between;
+}
+.footer__copy { font-family:var(--mono); font-size:11px; color:var(--ink-faint); }
+.footer__links { display:flex; gap:24px; list-style:none; }
+.footer__links a { font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-decoration:none; letter-spacing:.06em; transition:color var(--tr); }
+.footer__links a:hover { color:var(--gold); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+.reveal { opacity:0; transform:translateY(20px); transition:opacity .6s ease, transform .6s ease; }
+.reveal.visible { opacity:1; transform:none; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:1000px) {
+  .hero__layout { grid-template-columns:1fr; padding:calc(var(--nav-h) + 56px) 0 40px; }
+  .hero__photo { justify-content:center; }
+  .hero__photo-frame { width:260px; height:320px; }
+  .strip { grid-template-columns:repeat(2,1fr); }
+  .strat__kpis { grid-template-columns:repeat(3,1fr); }
+  .strat__chart-header { flex-direction:column; }
+  .timeline-item { grid-template-columns:64px 28px 1fr; }
+  .skills-outer { grid-template-columns:1fr; }
+}
+@media(max-width:768px) {
+  nav { padding:0 20px; } .nav__links { display:none; }
+  .page { padding:0 20px 80px; }
+  .strip { grid-template-columns:repeat(2,1fr); }
+  .projects-grid { grid-template-columns:1fr; }
+  .about-grid { grid-template-columns:1fr; padding:24px; }
+  .skills-outer { grid-template-columns:1fr; padding:24px; }
+  footer { flex-direction:column; gap:16px; text-align:center; padding:24px 20px; }
+  .timeline::before { left:48px; }
+  .timeline-item { grid-template-columns:48px 24px 1fr; gap:0 10px; }
+  .timeline-year { font-size:11px; }
+  .tl-tooltip { width:280px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav__logo">Daros Nakai</a>
+  <div class="nav__right">
+    <ul class="nav__links">
+      <li><a href="#projects" data-i18n="nav_projects">Research</a></li>
+      <li><a href="#education" data-i18n="nav_education">Education</a></li>
+      <li><a href="#about" data-i18n="nav_about">Profile</a></li>
+      <li><a href="https://github.com/darosnakai" target="_blank" rel="noopener">GitHub</a></li>
+    </ul>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en',this)">EN</button>
+      <button class="lang-btn"        onclick="setLang('pt',this)">PT</button>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section id="hero" style="position:relative;">
+    <div class="hero__layout">
+      <div class="hero__text">
+        <div class="hero__eyebrow" data-i18n="hero_eyebrow">Financial Analyst · Quantitative Strategies · Amsterdam</div>
+        <h1 class="hero__name">Daros<br>Nakai</h1>
+        <div class="hero__rule"></div>
+        <p class="hero__role">
+          <span class="accent" data-i18n="hero_role_accent">Financial Analyst</span>
+          <span data-i18n="hero_role_rest"> &amp; Researcher</span>
+        </p>
+        <p class="hero__bio" data-i18n="hero_bio">Honours student in Business Analytics at the <strong>University of Amsterdam</strong>, specializing in <strong>finance</strong> and <strong>financial markets' data</strong>. I build financial models and investment strategies to identify edges in financial markets, and machine learning models to support decision-making.</p>
+        <div class="hero__cta">
+          <a href="https://github.com/darosnakai" target="_blank" rel="noopener" class="btn btn--ghost" data-i18n="hero_cta2">GitHub</a>
+          <a href="https://www.linkedin.com/in/darosnakai/" target="_blank" rel="noopener" class="btn btn--ghost" data-i18n="hero_cta3">LinkedIn</a>
+          <a href="https://docs.google.com/viewer?url=https://raw.githubusercontent.com/darosnakai/portfolio/main/cv-en.pdf" target="_blank" rel="noopener" class="btn btn--gold" id="cv-btn" data-i18n="hero_cta4">CV</a>
+        </div>
+      </div>
+      <div class="hero__photo">
+        <div class="hero__photo-frame">
+          <img src="daros_picture.jpg" alt="Daros Nakai" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STRATEGY SHOWCASE -->
+  <section id="strategy" class="section reveal" style="padding-top:72px;">
+    <div class="section__eyebrow">Featured Strategy</div>
+    <h2 class="section__title">Long-Short Factor Strategy</h2>
+    <p class="section__subtitle" style="margin-bottom:32px;">A market-neutral equity strategy harvesting Value, Momentum &amp; Quality risk premia on the S&amp;P 500 universe — backtested 2005 to 2026.</p>
+
+    <!-- KPI strip -->
+    <div class="strat__kpis">
+      <div class="strat__kpi">
+        <div class="strat__kpi-val" id="s-ret">—</div>
+        <div class="strat__kpi-lbl">Ann. Return</div>
+        <div class="strat__kpi-sub">Multi-Factor</div>
+      </div>
+      <div class="strat__kpi">
+        <div class="strat__kpi-val" id="s-sharpe">—</div>
+        <div class="strat__kpi-lbl">Sharpe Ratio</div>
+        <div class="strat__kpi-sub">Annualised</div>
+      </div>
+      <div class="strat__kpi">
+        <div class="strat__kpi-val" id="s-dd">—</div>
+        <div class="strat__kpi-lbl">Max Drawdown</div>
+        <div class="strat__kpi-sub">Peak-to-trough</div>
+      </div>
+      <div class="strat__kpi">
+        <div class="strat__kpi-val" id="s-vol">—</div>
+        <div class="strat__kpi-lbl">Ann. Volatility</div>
+        <div class="strat__kpi-sub">Multi-Factor</div>
+      </div>
+      <div class="strat__kpi">
+        <div class="strat__kpi-val" id="s-period">2006–2025</div>
+        <div class="strat__kpi-lbl">Backtest Period</div>
+        <div class="strat__kpi-sub">Monthly rebalancing</div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="strat__chart-wrap">
+      <div class="strat__chart-header">
+        <div>
+          <div class="strat__chart-title">Cumulative Return</div>
+          <div class="strat__chart-sub">Indexed to 1 at start · Long-short · Monthly rebalancing</div>
+        </div>
+        <div class="strat__legend">
+          <span class="strat__leg-item"><span class="strat__leg-dot" style="background:#7a9e6a;"></span>Multi-Factor</span>
+          <span class="strat__leg-item"><span class="strat__leg-dot" style="background:#9aafcc;"></span>Value</span>
+          <span class="strat__leg-item"><span class="strat__leg-dot" style="background:#b8a8cc;"></span>Momentum</span>
+          <span class="strat__leg-item"><span class="strat__leg-dot" style="background:#c8a870;"></span>Quality</span>
+          <span class="strat__leg-item"><span class="strat__leg-dot strat__leg-dot--dash" style="background:#b0a890;"></span>S&amp;P 500</span>
+        </div>
+      </div>
+      <div style="position:relative;height:280px;">
+        <div id="strat-loading" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--ink-faint);letter-spacing:.1em;">Loading strategy data…</span>
+        </div>
+        <canvas id="strat-cum-chart" style="display:none;"></canvas>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;text-align:right;">
+      <a href="projects-f/factor-investing.html" class="btn btn--gold" style="font-size:10px;">Full Strategy Report ↗</a>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" class="section reveal">
+    <div class="section__eyebrow" data-i18n="projects_eyebrow">Selected Work</div>
+    <h2 class="section__title" data-i18n="projects_title">Research &amp; Projects</h2>
+    <p class="section__subtitle" data-i18n="projects_sub">Quantitative research and financial modelling projects focused on systematic investment strategies and macroeconomic forecasting.</p>
+    <div class="projects-grid">
+
+      <!-- 01 — Factor Investing (first) -->
+      <a href="projects-f/factor-investing.html" class="project-card">
+        <div class="card__number" data-i18n="card3_num">01 — Systematic Equity Strategy</div>
+        <h3 class="card__title" data-i18n="card3_title">Long-Short Factor Investing Strategy</h3>
+        <p class="card__desc" data-i18n="card3_desc">A market-neutral long-short equity strategy harvesting Value, Momentum, and Quality risk premia on the S&amp;P 500 universe. Built with MSCI-aligned composite scoring, sector-neutral z-score normalisation, and Betting-Against-Beta (BAB) construction to isolate factor exposure from market beta. Backtested from 2005 to 2026 with monthly rebalancing.</p>
+        <div class="card__footer">
+          <div class="card__tech">
+            <span class="card__tech-item">Python</span>
+            <span class="card__tech-item">EODHD API</span>
+            <span class="card__tech-item">HDF5</span>
+            <span class="card__tech-item">Backtesting</span>
+          </div>
+          <span class="card__arrow">↗</span>
+        </div>
+      </a>
+
+      <!-- 02 — Inflation ML -->
+      <a href="projects-f/brazilian-inflation-prediction.html" class="project-card">
+        <div class="card__number" data-i18n="card1_num">02 — Macroeconomic Forecasting</div>
+        <h3 class="card__title" data-i18n="card1_title">Inflation Forecasting via Regularised ML</h3>
+        <p class="card__desc" data-i18n="card1_desc">Evaluated whether regularised machine learning models — Ridge, Lasso, and Elastic Net — can systematically outperform Central Bank analyst consensus on CPI forecasting. Models trained on 100+ macroeconomic indicators with walk-forward validation to prevent look-ahead bias, benchmarked against the official market consensus.</p>
+        <div class="card__footer">
+          <div class="card__tech">
+            <span class="card__tech-item">Python</span>
+            <span class="card__tech-item">Central Bank API</span>
+            <span class="card__tech-item">Scikit-Learn</span>
+          </div>
+          <span class="card__arrow">↗</span>
+        </div>
+      </a>
+
+      <!-- 03 — CAPM -->
+      <a href="projects-f/capm-risk-return.html" class="project-card">
+        <div class="card__number" data-i18n="card2_num">03 — Risk Analytics</div>
+        <h3 class="card__title" data-i18n="card2_title">Equity Risk Analytics Dashboard (CAPM)</h3>
+        <p class="card__desc" data-i18n="card2_desc">Browser-based interactive tool for single-stock and portfolio risk analysis under the CAPM framework. Computes rolling beta, expected return, and visualises the Security Market Line for any S&amp;P 500 stock — powered by live Yahoo Finance and EODHD data.</p>
+        <div class="card__footer">
+          <div class="card__tech">
+            <span class="card__tech-item">Python</span>
+            <span class="card__tech-item">Yahoo Finance</span>
+            <span class="card__tech-item">EODHD API</span>
+          </div>
+          <span class="card__arrow">↗</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- STRIP -->
+  <div class="strip-outer reveal" style="margin-top:56px;">
+    <div class="strip">
+      <div class="strip-item">
+        <div class="strip-val" data-i18n="strip_v3">Finance, Economics &amp; Market Data</div>
+        <div class="strip-label" data-i18n="strip_l3">Specialization</div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-val" data-i18n="strip_v4">Founder &amp; Team Lead — Quant Finance Club</div>
+        <div class="strip-label" data-i18n="strip_l4">Student Investment Fund</div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-val" data-i18n="strip_v6">Brazil · Germany · Australia · Netherlands</div>
+        <div class="strip-label" data-i18n="strip_l6">Countries Lived</div>
+      </div>
+      <div class="strip-item">
+        <div class="strip-val" data-i18n="strip_v7">English, Spanish &amp; Portuguese</div>
+        <div class="strip-label" data-i18n="strip_l7">Fluent Languages</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDUCATION -->
+  <section id="education" class="section reveal">
+    <div class="section__eyebrow" data-i18n="edu_eyebrow">Academic Path</div>
+    <h2 class="section__title" data-i18n="edu_title">Education</h2>
+
+    <div class="timeline" id="timeline">
+
+      <!-- 2021 -->
+      <div class="timeline-item">
+        <div class="timeline-year">2021</div>
+        <div class="timeline-dot-col">
+          <div class="timeline-dot" style="background:var(--gold-light);box-shadow:0 0 0 4px rgba(154,124,58,0.1);"></div>
+        </div>
+        <div class="timeline-content tl-tooltip-wrap">
+          <div class="timeline-institution" data-i18n="edu1_inst">School of the Nations</div>
+          <div class="timeline-degree" data-i18n="edu1_degree">High School — Valedictorian</div>
+          <div class="timeline-dates">Brasília, Brazil · Jun 2021</div>
+          <div class="timeline-desc" data-i18n="edu1_desc">Graduated top of class with a 9.2/10 GPA. Advanced coursework building the quantitative and analytical foundation for engineering and business studies abroad.</div>
+          <div class="timeline-tags">
+            <span class="timeline-tag timeline-tag--amber">9.2 / 10 GPA</span>
+            <span class="timeline-tag timeline-tag--amber">Valedictorian</span>
+          </div>
+          <div class="tl-tooltip">
+            <span class="tl-tooltip-tag">The starting point</span>
+            <div class="tl-tooltip-text">Studying abroad was always the goal — I wanted to be the first in my family to study outside Brazil. Europe stood out for its multiculturalism and history. Germany appealed to me as a real challenge — a completely different language, a very different culture, and a rich history I found fascinating.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2022 -->
+      <div class="timeline-item">
+        <div class="timeline-year">2022</div>
+        <div class="timeline-dot-col">
+          <div class="timeline-dot" style="background:#6a8fbb;box-shadow:0 0 0 4px rgba(106,143,187,0.12);"></div>
+        </div>
+        <div class="timeline-content tl-tooltip-wrap">
+          <div class="timeline-institution" data-i18n="edu2_inst">UE Germany (Graduated)</div>
+          <div class="timeline-degree" data-i18n="edu2_degree">Bachelor's in Software Engineering</div>
+          <div class="timeline-dates" data-i18n="edu2_dates">Potsdam, Germany · Mar 2022 – Apr 2025</div>
+          <div class="timeline-desc" data-i18n="edu2_desc">Completed a Software Engineering degree with an 8.2/10 GPA. Core coursework in algorithms &amp; data structures (Python), machine learning, and time series analysis — building strong technical foundations applied later in finance.</div>
+          <div class="timeline-tags">
+            <span class="timeline-tag timeline-tag--blue">8.2 / 10 GPA</span>
+            <span class="timeline-tag timeline-tag--blue">Graduated</span>
+          </div>
+          <div class="tl-tooltip">
+            <span class="tl-tooltip-tag">Why Germany?</span>
+            <div class="tl-tooltip-text">Software Engineering felt like the right entry point, but I quickly realised I had little interest in frontend work or building apps. What I actually loved was analysing data and extracting meaningful insights. I had already decided to change courses, but a merit-based scholarship for an exchange semester in Sydney made me pause the plan.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2023 -->
+      <div class="timeline-item">
+        <div class="timeline-year">2023</div>
+        <div class="timeline-dot-col">
+          <div class="timeline-dot" style="background:#9a78bb;box-shadow:0 0 0 4px rgba(154,120,187,0.12);"></div>
+        </div>
+        <div class="timeline-content tl-tooltip-wrap">
+          <div class="timeline-institution" data-i18n="edu3_inst">University of Technology Sydney (UTS)</div>
+          <div class="timeline-degree" data-i18n="edu3_degree">International Exchange Programme</div>
+          <div class="timeline-dates" data-i18n="edu3_dates">Sydney, Australia · 2023</div>
+          <div class="timeline-desc" data-i18n="edu3_desc">International exchange semester, gaining exposure to a new academic environment while developing a strong cross-cultural perspective. Pursued finance and economics courses that solidified my decision to build a career in the financial field.</div>
+          <div class="timeline-tags">
+            <span class="timeline-tag timeline-tag--violet" data-i18n="edu3_tag1">Semester Exchange</span>
+            <span class="timeline-tag timeline-tag--violet" data-i18n="edu3_tag2">Awarded Exchange Scholarship</span>
+          </div>
+          <div class="tl-tooltip">
+            <span class="tl-tooltip-tag">The turning point</span>
+            <div class="tl-tooltip-text">I took finance and economics courses at UTS, and I was sure finance and data was the right direction. More than the academics, the people I met during that period shifted my perspective on career and life in ways I didn't expect. I left Australia certain of the pivot.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2024 -->
+      <div class="timeline-item">
+        <div class="timeline-year">2024</div>
+        <div class="timeline-dot-col">
+          <div class="timeline-dot" style="background:#6a9868;box-shadow:0 0 0 4px rgba(106,152,104,0.15);"></div>
+        </div>
+        <div class="timeline-content tl-tooltip-wrap">
+          <div class="timeline-institution" data-i18n="edu4_inst">University of Amsterdam (In Progress)</div>
+          <div class="timeline-degree" data-i18n="edu4_degree">BSc Business Analytics (Honours)</div>
+          <div class="timeline-dates" data-i18n="edu4_dates">Amsterdam, Netherlands · Sep 2024 – Jul 2027</div>
+          <div class="timeline-desc" data-i18n="edu4_desc">Currently in the Honours Programme, combining Business Analytics with a Mathematics minor. Relevant coursework: Finance I-II, Macroeconomics, Machine Learning, Econometrics, Probability &amp; Statistics I-II, Time Series Analysis, Linear Algebra.</div>
+          <div class="timeline-tags">
+            <span class="timeline-tag timeline-tag--green">7.8 / 10 GPA</span>
+            <span class="timeline-tag timeline-tag--green">Honours Programme</span>
+          </div>
+          <div class="tl-tooltip">
+            <span class="tl-tooltip-tag">The deliberate choice</span>
+            <div class="tl-tooltip-text">Business Analytics sits at exactly the intersection I was looking for — finance and data. UvA's academic rigour and its position as one of the world's leading research universities made the choice easy. The Honours Programme felt completely natural to me: I've always been drawn to studying topics outside my immediate field.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about" class="section reveal">
+    <div class="section__eyebrow" data-i18n="about_eyebrow">Background</div>
+    <h2 class="section__title" data-i18n="about_title">About Me</h2>
+
+    <div class="about-grid">
+      <div>
+        <div class="about-block__title" data-i18n="about_interests">Interests</div>
+        <ul class="about-list">
+          <li data-i18n="about_i1">Systematic asset pricing and factor-based investment strategies</li>
+          <li data-i18n="about_i2">Machine learning applied to macroeconomic forecasting and financial markets</li>
+          <li data-i18n="about_i3">Identification of persistent market inefficiencies and behavioural anomalies</li>
+          <li data-i18n="about_i4">Building data-driven systems for decision-making in finance</li>
+        </ul>
+      </div>
+      <div>
+        <div class="about-block__title" data-i18n="about_tools">Tools &amp; Stack</div>
+        <ul class="about-list">
+          <li data-i18n="about_t1">Python — pandas, NumPy, scikit-learn, Plotly</li>
+          <li data-i18n="about_t2">Data pipelines — Central Bank and Government APIs, EODHD, Yahoo Finance</li>
+          <li data-i18n="about_t3">ML — OLS, Ridge, Lasso, Elastic Net, Random Forest, Hidden Markov Models</li>
+          <li data-i18n="about_t4">Factor modelling — risk premia and systematic portfolio construction</li>
+          <li data-i18n="about_t5">Backtesting — walk-forward validation and cross-sectional portfolio construction</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Skills -->
+    <div class="reveal" style="margin-top:56px;">
+      <div class="section__eyebrow" data-i18n="skills_eyebrow">Strengths &amp; Skills</div>
+      <h3 style="font-family:var(--serif);font-size:clamp(22px,3vw,32px);font-weight:600;letter-spacing:-.01em;margin-bottom:32px;color:var(--ink);" data-i18n="skills_title">Soft Skills &amp; Strengths</h3>
+      <div class="skills-outer">
+
+        <div>
+          <div class="skills-group">
+            <div class="skills-group-title" data-i18n="skills_core_title">Core Strengths</div>
+            <div class="skills-chips">
+              <span class="skill-chip skill-chip--green" data-i18n="sk_c1">Pattern Recognition</span>
+              <span class="skill-chip skill-chip--green" data-i18n="sk_c2">Analytical Reasoning</span>
+              <span class="skill-chip skill-chip--green" data-i18n="sk_c5">Hypothesis-Driven Thinking</span>
+              <span class="skill-chip skill-chip--green" data-i18n="sk_c6">Attention to Detail</span>
+            </div>
+          </div>
+          <div class="skills-group">
+            <div class="skills-group-title" data-i18n="skills_interpersonal_title">Interpersonal</div>
+            <div class="skills-chips">
+              <span class="skill-chip skill-chip--blue" data-i18n="sk_i1">Clear Communication</span>
+              <span class="skill-chip skill-chip--blue" data-i18n="sk_i2">Team Leadership</span>
+              <span class="skill-chip skill-chip--blue" data-i18n="sk_i4">Stakeholder Communication</span>
+              <span class="skill-chip skill-chip--blue" data-i18n="sk_i5">Proactivity</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="skills-group">
+            <div class="skills-group-title" data-i18n="skills_research_title">Research &amp; Execution</div>
+            <div class="skills-chips">
+              <span class="skill-chip skill-chip--violet" data-i18n="sk_r1">Structured Problem Solving</span>
+              <span class="skill-chip skill-chip--violet" data-i18n="sk_r3">Signal Research &amp; Backtesting</span>
+              <span class="skill-chip skill-chip--violet" data-i18n="sk_r4">Data Pipeline Design</span>
+              <span class="skill-chip skill-chip--violet" data-i18n="sk_r5">Robustness Testing</span>
+            </div>
+          </div>
+          <div class="skills-group">
+            <div class="skills-group-title" data-i18n="skills_languages_title">Languages</div>
+            <div class="skills-chips">
+              <span class="skill-chip skill-chip--amber" data-i18n="sk_l1">English — Fluent</span>
+              <span class="skill-chip skill-chip--amber" data-i18n="sk_l2">Portuguese — Fluent</span>
+              <span class="skill-chip skill-chip--amber" data-i18n="sk_l3">Spanish — Fluent</span>
+              <span class="skill-chip skill-chip--amber" data-i18n="sk_l4">German — Intermediate (B2)</span>
+              <span class="skill-chip skill-chip--amber" data-i18n="sk_l5">Japanese — Basic</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+</div><!-- /page -->
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer__copy">© 2025 Daros Nakai</span>
+  <ul class="footer__links">
+    <li><a href="#projects" data-i18n="nav_projects">Research</a></li>
+    <li><a href="https://github.com/darosnakai" target="_blank" rel="noopener">GitHub</a></li>
+    <li><a href="https://www.linkedin.com/in/darosnakai/" target="_blank" rel="noopener">LinkedIn</a></li>
+  </ul>
+</footer>
+
+<script>
+/* SCROLL REVEAL */
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold:0.07 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+/* TIMELINE REVEAL */
+const tlObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('tl-visible'); });
+}, { threshold:0.1 });
+document.querySelectorAll('.timeline-item').forEach((el, i) => {
+  el.style.transitionDelay = `${i * 0.07}s`;
+  const content = el.querySelector('.timeline-content');
+  if (content) content.style.transitionDelay = `${i * 0.07 + 0.06}s`;
+  tlObs.observe(el);
+});
+
+/* SMOOTH SCROLL */
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const t = document.querySelector(a.getAttribute('href'));
+    if (t) { e.preventDefault(); t.scrollIntoView({ behavior:'smooth' }); }
+  });
+});
+
+/* i18n */
+const STRINGS = {
+  en: {
+    nav_projects:'Research', nav_education:'Education', nav_about:'Profile',
+    hero_eyebrow:'Financial Analyst · Quantitative Strategies · Amsterdam',
+    hero_role_accent:'Financial Analyst', hero_role_rest:' &amp; Researcher',
+    hero_bio:`Honours student in Business Analytics at the <strong>University of Amsterdam</strong>, specializing in <strong>finance</strong> and <strong>financial markets' data</strong>. I build financial models and investment strategies to identify edges in financial markets, and machine learning models to support decision-making.`,
+    hero_cta2:'GitHub', hero_cta3:'LinkedIn', hero_cta4:'CV',
+    projects_eyebrow:'Selected Work', projects_title:'Research &amp; Projects',
+    projects_sub:'Quantitative research and financial modelling projects focused on systematic investment strategies and macroeconomic forecasting.',
+    card3_num:'01 — Systematic Equity Strategy',
+    card3_title:'Long-Short Factor Investing Strategy',
+    card3_desc:'A market-neutral long-short equity strategy harvesting Value, Momentum, and Quality risk premia on the S&amp;P 500 universe. Built with MSCI-aligned composite scoring, sector-neutral z-score normalisation, and Betting-Against-Beta (BAB) construction to isolate factor exposure from market beta. Backtested from 2005 to 2026 with monthly rebalancing.',
+    card1_num:'02 — Macroeconomic Forecasting',
+    card1_title:'Inflation Forecasting via Regularised ML',
+    card1_desc:'Evaluated whether regularised machine learning models — Ridge, Lasso, and Elastic Net — can systematically outperform Central Bank analyst consensus on CPI forecasting. Models trained on 100+ macroeconomic indicators with walk-forward validation to prevent look-ahead bias, benchmarked against the official market consensus.',
+    card2_num:'03 — Risk Analytics',
+    card2_title:'Equity Risk Analytics Dashboard (CAPM)',
+    card2_desc:'Browser-based interactive tool for single-stock and portfolio risk analysis under the CAPM framework. Computes rolling beta, expected return, and visualises the Security Market Line for any S&amp;P 500 stock — powered by live Yahoo Finance and EODHD data.',
+    strip_v3:'Finance, Economics &amp; Market Data', strip_l3:'Specialization',
+    strip_v4:'Founder &amp; Team Lead — Quant Finance Club', strip_l4:'Student Investment Fund',
+    strip_v6:'Brazil · Germany · Australia · Netherlands', strip_l6:'Countries Lived',
+    strip_v7:'English, Spanish &amp; Portuguese', strip_l7:'Fluent Languages',
+    edu_eyebrow:'Academic Path', edu_title:'Education',
+    edu1_inst:'School of the Nations',
+    edu1_degree:'High School — Valedictorian',
+    edu1_desc:'Graduated top of class with a 9.2/10 GPA. Advanced coursework building the quantitative and analytical foundation for engineering and business studies abroad.',
+    edu2_inst:'UE Germany (Graduated)',
+    edu2_degree:"Bachelor's in Software Engineering",
+    edu2_dates:'Potsdam, Germany · Mar 2022 – Apr 2025',
+    edu2_desc:'Completed a Software Engineering degree with an 8.2/10 GPA. Core coursework in algorithms &amp; data structures (Python), machine learning, and time series analysis — building strong technical foundations applied later in finance.',
+    edu3_inst:'University of Technology Sydney (UTS)',
+    edu3_degree:'International Exchange Programme',
+    edu3_dates:'Sydney, Australia · 2023',
+    edu3_desc:'International exchange semester, gaining exposure to a new academic environment while developing a strong cross-cultural perspective. Pursued finance and economics courses that solidified my decision to build a career in the financial field.',
+    edu3_tag1:'Semester Exchange',
+    edu3_tag2:'Awarded Exchange Scholarship',
+    edu4_inst:'University of Amsterdam (In Progress)',
+    edu4_degree:'BSc Business Analytics (Honours)',
+    edu4_dates:'Amsterdam, Netherlands · Sep 2024 – Jul 2027',
+    edu4_desc:'Currently in the Honours Programme, combining Business Analytics with a Mathematics minor. Relevant coursework: Finance I-II, Macroeconomics, Machine Learning, Econometrics, Probability &amp; Statistics I-II, Time Series Analysis, Linear Algebra.',
+    about_eyebrow:'Background', about_title:'About Me',
+    about_interests:'Interests', about_tools:'Tools &amp; Stack',
+    about_i1:'Systematic asset pricing and factor-based investment strategies',
+    about_i2:'Machine learning applied to macroeconomic forecasting and financial markets',
+    about_i3:'Identification of persistent market inefficiencies and behavioural anomalies',
+    about_i4:'Building data-driven systems for decision-making in finance',
+    about_t1:'Python — pandas, NumPy, scikit-learn, Plotly',
+    about_t2:'Data pipelines — Central Bank and Government APIs, EODHD, Yahoo Finance',
+    about_t3:'ML — OLS, Ridge, Lasso, Elastic Net, Random Forest, Hidden Markov Models',
+    about_t4:'Factor modelling — risk premia and systematic portfolio construction',
+    about_t5:'Backtesting — walk-forward validation and cross-sectional portfolio construction',
+    skills_eyebrow:'Strengths &amp; Skills', skills_title:'Soft Skills &amp; Strengths',
+    skills_core_title:'Core Strengths',
+    sk_c1:'Pattern Recognition', sk_c2:'Analytical Reasoning',
+    sk_c5:'Hypothesis-Driven Thinking', sk_c6:'Attention to Detail',
+    skills_interpersonal_title:'Interpersonal',
+    sk_i1:'Clear Communication', sk_i2:'Team Leadership',
+    sk_i4:'Stakeholder Communication', sk_i5:'Proactivity',
+    skills_research_title:'Research &amp; Execution',
+    sk_r1:'Structured Problem Solving', sk_r3:'Signal Research &amp; Backtesting',
+    sk_r4:'Data Pipeline Design', sk_r5:'Robustness Testing',
+    skills_languages_title:'Languages',
+    sk_l1:'English — Fluent', sk_l2:'Portuguese — Fluent', sk_l3:'Spanish — Fluent',
+    sk_l4:'German — Intermediate (B2)', sk_l5:'Japanese — Basic',
+  },
+  pt: {
+    nav_projects:'Pesquisa', nav_education:'Formação', nav_about:'Perfil',
+    hero_eyebrow:'Analista Financeiro · Estratégias Quantitativas · Amsterdã',
+    hero_role_accent:'Analista Financeiro', hero_role_rest:' &amp; Pesquisador',
+    hero_bio:`Estudante de Bacharelado em Business Analytics (Turma de Honra) na <strong>Universidade de Amsterdã</strong>, com especialização em <strong>finanças</strong> e <strong>dados de mercados financeiros</strong>. Desenvolvo modelos financeiros e estratégias de investimento para identificar vantagens nos mercados financeiros, e modelos de machine learning para apoio à tomada de decisão.`,
+    hero_cta2:'GitHub', hero_cta3:'LinkedIn', hero_cta4:'CV',
+    projects_eyebrow:'Trabalhos Selecionados', projects_title:'Pesquisa &amp; Projetos',
+    projects_sub:'Projetos de pesquisa quantitativa e modelagem financeira com foco em estratégias de investimento sistemáticas e previsão macroeconômica.',
+    card3_num:'01 — Estratégia Sistemática de Ações',
+    card3_title:'Estratégia Long-Short de Fatores',
+    card3_desc:'Estratégia long-short neutra ao mercado que captura prêmios de risco de Valor, Momentum e Qualidade no universo do S&amp;P 500. Construída com pontuação composta alinhada à MSCI, z-scores neutros por setor e construção Betting-Against-Beta (BAB) para isolar a exposição ao fator do beta de mercado. Backtest de 2005 a 2026 com rebalanceamento mensal.',
+    card1_num:'02 — Previsão Macroeconômica',
+    card1_title:'Previsão de Inflação via ML Regularizado',
+    card1_desc:'Avaliação de se modelos de machine learning regularizados — Ridge, Lasso e Elastic Net — conseguem superar sistematicamente o consenso dos analistas do Banco Central na previsão do IPCA. Modelos treinados em mais de 100 indicadores macroeconômicos com validação walk-forward, comparados ao consenso oficial de mercado.',
+    card2_num:'03 — Análise de Risco',
+    card2_title:'Dashboard de Risco e Retorno (CAPM)',
+    card2_desc:'Ferramenta interativa no navegador para análise de risco de ações e portfólios pelo modelo CAPM. Calcula beta dinâmico, retorno esperado e visualiza a Linha do Mercado de Títulos para qualquer ação do S&amp;P 500 — com dados ao vivo do Yahoo Finance e EODHD.',
+    strip_v3:'Finanças, Economia &amp; Dados de Mercado', strip_l3:'Especialização',
+    strip_v4:'Fundador &amp; Team Lead — Clube Quant Finance', strip_l4:'Fundo de Investimento Estudantil',
+    strip_v6:'Brasil · Alemanha · Austrália · Holanda', strip_l6:'Países Onde Morei',
+    strip_v7:'Inglês, Espanhol &amp; Português', strip_l7:'Idiomas Fluentes',
+    edu_eyebrow:'Trajetória Acadêmica', edu_title:'Formação',
+    edu1_inst:'School of the Nations',
+    edu1_degree:'Ensino Médio — Valedictorian',
+    edu1_desc:'Concluiu o ensino médio com 9,2/10, sendo o melhor aluno da turma. Disciplinas avançadas que serviram de base para os estudos de engenharia e negócios no exterior.',
+    edu2_inst:'UE Germany (Graduado)',
+    edu2_degree:'Bacharelado em Engenharia de Software',
+    edu2_dates:'Potsdam, Alemanha · Mar 2022 – Abr 2025',
+    edu2_desc:'Concluiu Engenharia de Software com 8,2/10. Disciplinas de algoritmos e estrutura de dados (Python), machine learning e séries temporais — base técnica sólida para os projetos financeiros.',
+    edu3_inst:'University of Technology Sydney (UTS)',
+    edu3_degree:'Programa de Intercâmbio Internacional',
+    edu3_dates:'Sydney, Austrália · 2023',
+    edu3_desc:'Semestre de intercâmbio internacional, com exposição a um novo ambiente acadêmico e desenvolvimento de perspectiva multicultural. Cursou disciplinas de finanças e economia que consolidaram a decisão de seguir carreira na área financeira.',
+    edu3_tag1:'Intercâmbio Semestral',
+    edu3_tag2:'Bolsa de Intercâmbio Conquistada',
+    edu4_inst:'Universidade de Amsterdã (Em Andamento)',
+    edu4_degree:'BSc Business Analytics (Turma de Honra)',
+    edu4_dates:'Amsterdã, Holanda · Set 2024 – Jul 2027',
+    edu4_desc:'Atualmente no Programa de Honra, combinando Business Analytics com minor em Matemática. Disciplinas: Finanças I-II, Macroeconomia, Machine Learning, Econometria, Probabilidade &amp; Estatística I-II, Séries Temporais, Álgebra Linear.',
+    about_eyebrow:'Formação', about_title:'Sobre Mim',
+    about_interests:'Interesses', about_tools:'Ferramentas &amp; Stack',
+    about_i1:'Precificação sistemática de ativos e estratégias baseadas em fatores',
+    about_i2:'Machine learning aplicado à previsão macroeconômica e mercados financeiros',
+    about_i3:'Identificação de ineficiências persistentes e anomalias comportamentais nos mercados',
+    about_i4:'Desenvolvimento de sistemas orientados a dados para tomada de decisão em finanças',
+    about_t1:'Python — pandas, NumPy, scikit-learn, Plotly',
+    about_t2:'Pipelines de dados — APIs do Banco Central e IBGE, EODHD, Yahoo Finance',
+    about_t3:'ML — OLS, Ridge, Lasso, Elastic Net, Random Forest, Hidden Markov Models',
+    about_t4:'Modelagem de fatores — prêmios de risco e construção sistemática de portfólio',
+    about_t5:'Backtesting — validação walk-forward e construção de portfólio cross-seccional',
+    skills_eyebrow:'Competências', skills_title:'Soft Skills &amp; Pontos Fortes',
+    skills_core_title:'Pontos Fortes',
+    sk_c1:'Reconhecimento de Padrões', sk_c2:'Raciocínio Analítico',
+    sk_c5:'Pensamento Orientado a Hipóteses', sk_c6:'Atenção aos Detalhes',
+    skills_interpersonal_title:'Habilidades Interpessoais',
+    sk_i1:'Comunicação Clara', sk_i2:'Liderança de Times',
+    sk_i4:'Comunicação com Stakeholders', sk_i5:'Proatividade',
+    skills_research_title:'Pesquisa &amp; Execução',
+    sk_r1:'Resolução Estruturada de Problemas', sk_r3:'Pesquisa de Sinais &amp; Backtesting',
+    sk_r4:'Pipelines de Dados', sk_r5:'Testes de Robustez',
+    skills_languages_title:'Idiomas',
+    sk_l1:'Inglês — Fluente', sk_l2:'Português — Fluente', sk_l3:'Espanhol — Fluente',
+    sk_l4:'Alemão — Intermediário (B2)', sk_l5:'Japonês — Básico',
+  }
+};
+
+const CV_URLS = {
+  en: 'https://docs.google.com/viewer?url=https://raw.githubusercontent.com/darosnakai/portfolio/main/cv-en.pdf',
+  pt: 'https://docs.google.com/viewer?url=https://raw.githubusercontent.com/darosnakai/portfolio/main/cv-pt.pdf',
+};
+
+function setLang(lang, btn) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  else document.querySelector(`.lang-btn[onclick*="'${lang}'"]`)?.classList.add('active');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (STRINGS[lang]?.[key] !== undefined) el.innerHTML = STRINGS[lang][key];
+  });
+  document.documentElement.lang = lang === 'pt' ? 'pt-BR' : 'en';
+  const url = new URL(window.location);
+  if (lang === 'pt') url.searchParams.set('lang','pt');
+  else url.searchParams.delete('lang');
+  history.replaceState(null,'',url);
+  const cvBtn = document.getElementById('cv-btn');
+  if (cvBtn) cvBtn.href = CV_URLS[lang] ?? CV_URLS.en;
+}
+
+/* LANG FROM URL */
+(function() {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('lang') === 'pt') setLang('pt', null);
+})();
+
+/* ── FACTOR STRATEGY SHOWCASE CHART ── */
+(function() {
+  const BASE = 'https://raw.githubusercontent.com/darosnakai/portfolio/main/data/factor_investing/';
+  function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.trim());
+    return lines.slice(1).map(line => {
+      const vals = line.split(','); const obj = {};
+      headers.forEach((h,i) => { obj[h] = vals[i] ? vals[i].trim() : ''; });
+      return obj;
+    });
+  }
+  async function fetchCSV(url) { const r = await fetch(url); if (!r.ok) throw new Error(`HTTP ${r.status}`); return parseCSV(await r.text()); }
+  function cumNav(rets) { let nav=1; return rets.map(r => { nav*=(1+r); return nav; }); }
+  function annReturn(rets) { return (rets.reduce((a,b)=>a+b,0)/rets.length)*12; }
+  function annVol(rets) { const m=rets.reduce((a,b)=>a+b,0)/rets.length; return Math.sqrt(rets.reduce((a,b)=>a+(b-m)**2,0)/rets.length)*Math.sqrt(12); }
+  function sharpe(rets) { const r=annReturn(rets),v=annVol(rets); return v>0?r/v:0; }
+  function maxDD(rets) { let peak=1,nav=1,dd=0; for(const r of rets){nav*=(1+r);if(nav>peak)peak=nav;dd=Math.min(dd,nav/peak-1);} return dd; }
+  function fmt(n,pct=true) { if(n===null||isNaN(n))return'—'; return pct?(n*100).toFixed(1)+'%':n.toFixed(2); }
+
+  async function loadStratChart() {
+    try {
+      const [vr,mr,qr,sp] = await Promise.all([
+        fetchCSV(BASE+'f_value_returns.csv'), fetchCSV(BASE+'f_momentum_returns.csv'),
+        fetchCSV(BASE+'f_quality_returns.csv'), fetchCSV(BASE+'sp500_monthly_returns.csv'),
+      ]);
+      const parse = (rows,dateCol,retCol) =>
+        rows.filter(r=>r[dateCol]&&r[retCol]&&r[retCol]!=='').map(r=>({date:r[dateCol].substring(0,7),ret:parseFloat(r[retCol])})).filter(r=>!isNaN(r.ret));
+      const val=parse(vr,'date','F_Value'), mom=parse(mr,'date','long_ret'),
+            qual=parse(qr,'date','F_Quality'), spx=parse(sp,'date',Object.keys(sp[0]).find(k=>k!=='date'));
+      const sets=[val,mom,qual,spx].map(s=>new Set(s.map(r=>r.date)));
+      const common=[...sets[0]].filter(d=>sets.every(s=>s.has(d))).sort();
+      const filter=(series,dates)=>{const map=Object.fromEntries(series.map(r=>[r.date,r.ret]));return dates.map(d=>map[d]??null).filter(v=>v!==null);};
+      const vR=filter(val,common), mR=filter(mom,common), qR=filter(qual,common), sR=filter(spx,common);
+      const multiR=vR.map((v,i)=>(v+mR[i]+qR[i])/3);
+      const thinLabels=common.map((d,i)=>i%24===0?d.substring(0,4):'');
+
+      // Populate KPIs
+      document.getElementById('s-ret').textContent    = fmt(annReturn(multiR));
+      document.getElementById('s-sharpe').textContent = fmt(sharpe(multiR),false);
+      document.getElementById('s-dd').textContent     = fmt(maxDD(multiR));
+      document.getElementById('s-vol').textContent    = fmt(annVol(multiR));
+
+      document.getElementById('strat-loading').style.display='none';
+      const canvas = document.getElementById('strat-cum-chart');
+      canvas.style.display='block';
+
+      Chart.defaults.font.family="'IBM Plex Mono',monospace";
+      Chart.defaults.font.size=10;
+      Chart.defaults.color='#b0a890';
+      Chart.defaults.borderColor='rgba(0,0,0,0.06)';
+
+      new Chart(canvas, {
+        type:'line',
+        data:{
+          labels:thinLabels,
+          datasets:[
+            {label:'Multi-Factor',data:cumNav(multiR),borderColor:'#7a9e6a',backgroundColor:'rgba(122,158,106,0.07)',fill:true,borderWidth:2.5,pointRadius:0,tension:.3},
+            {label:'Value',       data:cumNav(vR),    borderColor:'#9aafcc',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+            {label:'Momentum',    data:cumNav(mR),    borderColor:'#b8a8cc',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+            {label:'Quality',     data:cumNav(qR),    borderColor:'#c8a870',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3},
+            {label:'S&P 500',     data:cumNav(sR),    borderColor:'#b0a890',backgroundColor:'transparent',borderWidth:1.5,pointRadius:0,tension:.3,borderDash:[5,3]},
+          ]
+        },
+        options:{
+          responsive:true, maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:'#2e2a22',borderColor:'#4a4232',borderWidth:1,
+              titleFont:{family:"'IBM Plex Mono',monospace",size:10},
+              bodyFont:{family:"'IBM Plex Mono',monospace",size:10},
+              padding:10,
+              callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}×`}
+            }
+          },
+          scales:{
+            x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#b0a890',maxTicksLimit:8}},
+            y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#b0a890',callback:v=>v.toFixed(1)+'×'}}
+          }
+        }
+      });
+    } catch(e) {
+      const el=document.getElementById('strat-loading');
+      if(el) el.innerHTML='<span style="font-family:var(--mono);font-size:10px;color:var(--ink-faint);">Chart unavailable — data not yet published</span>';
+    }
+  }
+  loadStratChart();
+})();
+
+
+
+
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav__links a[href^="#"]');
+const secObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.getAttribute('id');
+      navLinks.forEach(l => { l.style.color = l.getAttribute('href') === `#${id}` ? 'var(--ink)' : ''; });
+    }
+  });
+}, { threshold:0.3 });
+sections.forEach(s => secObs.observe(s));
+</script>
+</body>
+</html>

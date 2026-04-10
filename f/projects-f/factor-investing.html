@@ -693,6 +693,11 @@ function setLang(lang,btn){
   const url=new URL(window.location);
   if(lang==='pt')url.searchParams.set('lang','pt');else url.searchParams.delete('lang');
   history.replaceState(null,'',url);
+  // Update back/home links to carry lang
+  document.querySelectorAll('a.nav__back, a.nav__logo, footer a[href*="index"]').forEach(a => {
+    const base = a.href.split('?')[0];
+    a.href = lang === 'pt' ? base + '?lang=pt' : base;
+  });
 }
 document.addEventListener('DOMContentLoaded', function() {
   const params = new URLSearchParams(window.location.search);

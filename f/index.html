@@ -879,8 +879,8 @@ function setLang(lang, btn) {
   history.replaceState(null,'',url);
   const cvBtn = document.getElementById('cv-btn');
   if (cvBtn) cvBtn.href = CV_URLS[lang] ?? CV_URLS.en;
-  // Carry lang param into project card links
-  document.querySelectorAll('a.project-card').forEach(a => {
+  // Carry lang param into all outbound links (project cards, strategy button)
+  document.querySelectorAll('a.project-card, a.btn--gold[href*="projects-f"]').forEach(a => {
     const base = a.href.split('?')[0];
     a.href = lang === 'pt' ? base + '?lang=pt' : base;
   });
